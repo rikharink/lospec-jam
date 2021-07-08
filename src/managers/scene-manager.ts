@@ -24,8 +24,16 @@ export class SceneManager {
 
     InputManager.shared.on(
       ((ev: string) => {
-        if (ev == 'menu') {
-          this.togglePause();
+        switch (ev) {
+          case 'menu':
+            this.togglePause();
+            break;
+          case 'next-item':
+            this.currentScene?.selectNext?.();
+            break;
+          case 'previous-item':
+            this.currentScene?.selectPrevious?.();
+            break;
         }
       }).bind(this),
     );

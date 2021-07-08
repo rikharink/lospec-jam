@@ -1,22 +1,59 @@
-import {
-  Action,
-  Input,
-  KeyboardEventType,
-  MouseEventType,
-  PointerEventType,
-  GamepadEventType,
-} from '../types';
 import { EventEmitter } from './../event-emitter';
-import {
-  InputDevice,
-  KeyboardInput,
-  MouseInput,
-  PointerInput,
-  GamepadInput,
-  GameInputEvent,
-  ActionState,
-} from '../interfaces/game-input';
-import { GamepadManager, GamepadManagerEvent } from './gamepad-manager';
+import { GamepadManager, GamepadManagerEvent, GamepadManagerEventType } from './gamepad-manager';
+
+type Action = string;
+type KeyboardEventType = 'keyup' | 'keydown' | 'keypress';
+type MouseEventType = 'mousedown' | 'mouseenter' | 'mouseleave' | 'mousemove' | 'mouseup' | 'mouseover' | 'mouseout' | 'mousewheel';
+type PointerEventType = 'pointercancel' | 'pointerdown' | 'pointerenter' | 'pointerleave' | 'pointermove' | 'pointerout' | 'pointerover' | 'pointerup';
+type EventTypes = KeyboardEventType | MouseEventType | PointerEventType | GamepadManagerEventType;
+
+export enum InputDevice {
+  Keyboard,
+  Pointer,
+  Mouse,
+  Gamepad,
+}
+
+interface GameInput {
+  type: InputDevice;
+  eventType: EventTypes;
+}
+
+interface KeyboardInput extends GameInput {
+  type: InputDevice.Keyboard;
+  eventType: KeyboardEventType;
+  key?: string;
+  predicate?: (ev: KeyboardEvent) => boolean;
+}
+
+interface PointerInput extends GameInput {
+  type: InputDevice.Pointer;
+  eventType: PointerEventType;
+  predicate: (ev: PointerEvent) => boolean;
+}
+
+interface MouseInput extends GameInput {
+  type: InputDevice.Mouse;
+  eventType: MouseEventType;
+  predicate: (ev: MouseEvent) => boolean;
+}
+
+interface GamepadInput extends GameInput {
+  type: InputDevice.Gamepad;
+  eventType: GamepadManagerEventType;
+  predicate: (ev: GamepadManagerEvent) => boolean;
+}
+
+type Input = KeyboardInput | PointerInput | MouseInput | GamepadInput;
+
+interface GameInputEvent {
+  action: Action;
+  inputs: Input[];
+}
+
+interface ActionState {
+
+}
 
 export class InputManager extends EventEmitter<Action> {
   private static _shared: InputManager = new InputManager();
@@ -26,9 +63,17 @@ export class InputManager extends EventEmitter<Action> {
   private _keyboardEventMappings = new Map<KeyboardEventType, Action[]>();
   private _mouseEventMappings = new Map<MouseEventType, Action[]>();
   private _pointerEventMappings = new Map<PointerEventType, Action[]>();
-  private _gamepadEventMappings = new Map<GamepadEventType, Action[]>();
+  private _gamepadEventMappings = new Map<GamepadManagerEventType, Action[]>();
 
   private _actionState = new Map<Action, ActionState>();
+
+  constructor() {
+    super();
+  }
+
+  public get gamepadManager(): GamepadManager {
+    return this._gamepadManager;
+  }
 
   public getState(action: Action): ActionState {
     return this._actionState.get(action);
@@ -36,21 +81,14 @@ export class InputManager extends EventEmitter<Action> {
 
   private emitIfSubcribedKeyboard(ev: KeyboardEvent) {
     if (!this._keyboardEventMappings.has(<KeyboardEventType>ev.type)) return;
-    let actions: Action[] = this._keyboardEventMappings.get(
-      <KeyboardEventType>ev.type,
-    );
+    let actions: Action[] = this._keyboardEventMappings.get(<KeyboardEventType>ev.type);
     for (let action of actions) {
       if (!this._actionMappings.has(action)) continue;
-      let inputs = this._actionMappings
-        .get(action)
-        .filter((i) => i.type == InputDevice.Keyboard)
-        .map((i) => i as KeyboardInput);
+      let inputs = this._actionMappings.get(action).filter(i => i.type == InputDevice.Keyboard).map(i => i as KeyboardInput);
       for (let input of inputs) {
-        if (
-          (!input.key || input.key == ev.key) &&
-          (!input.predicate || input.predicate(ev))
-        ) {
+        if ((!input.key || input.key == ev.key) && (!input.predicate || input.predicate(ev))) {
           this.emit(action);
+          ev.preventDefault();
         }
       }
     }
@@ -58,15 +96,10 @@ export class InputManager extends EventEmitter<Action> {
 
   private emitIfSubscribedMouse(ev: MouseEvent) {
     if (!this._mouseEventMappings.has(<MouseEventType>ev.type)) return;
-    let actions: Action[] = this._mouseEventMappings.get(
-      <MouseEventType>ev.type,
-    );
+    let actions: Action[] = this._mouseEventMappings.get(<MouseEventType>ev.type);
     for (let action of actions) {
       if (!this._actionMappings.has(action)) continue;
-      let inputs = this._actionMappings
-        .get(action)
-        .filter((i) => i.type == InputDevice.Mouse)
-        .map((i) => i as MouseInput);
+      let inputs = this._actionMappings.get(action).filter(i => i.type == InputDevice.Mouse).map(i => i as MouseInput);
       for (let input of inputs) {
         if (input.predicate(ev)) {
           this.emit(action);
@@ -77,15 +110,10 @@ export class InputManager extends EventEmitter<Action> {
 
   private emitIfSubscribedPointer(ev: PointerEvent) {
     if (!this._pointerEventMappings.has(<PointerEventType>ev.type)) return;
-    let actions: Action[] = this._pointerEventMappings.get(
-      <PointerEventType>ev.type,
-    );
+    let actions: Action[] = this._pointerEventMappings.get(<PointerEventType>ev.type);
     for (let action of actions) {
       if (!this._actionMappings.has(action)) continue;
-      let inputs = this._actionMappings
-        .get(action)
-        .filter((i) => i.type == InputDevice.Pointer)
-        .map((i) => i as PointerInput);
+      let inputs = this._actionMappings.get(action).filter(i => i.type == InputDevice.Pointer).map(i => i as PointerInput);
       for (let input of inputs) {
         if (input.predicate(ev)) {
           this.emit(action);
@@ -95,16 +123,11 @@ export class InputManager extends EventEmitter<Action> {
   }
 
   private emitIfSubscribedGamepad(ev: GamepadManagerEvent) {
-    if (!this._gamepadEventMappings.has(<GamepadEventType>ev.type)) return;
-    let actions: Action[] = this._gamepadEventMappings.get(
-      <GamepadEventType>ev.type,
-    );
+    if (!this._gamepadEventMappings.has(ev.type)) return;
+    let actions: Action[] = this._gamepadEventMappings.get(ev.type);
     for (let action of actions) {
       if (!this._actionMappings.has(action)) continue;
-      let inputs = this._actionMappings
-        .get(action)
-        .filter((i) => i.type == InputDevice.Gamepad)
-        .map((i) => i as GamepadInput);
+      let inputs = this._actionMappings.get(action).filter(i => i.type == InputDevice.Gamepad).map(i => i as GamepadInput);
       for (let input of inputs) {
         if (input.predicate(ev)) {
           this.emit(action);
@@ -155,10 +178,7 @@ export class InputManager extends EventEmitter<Action> {
     if (this._keyboardEventMappings.has(input.eventType)) {
       this._keyboardEventMappings.get(input.eventType).push(action);
     } else {
-      window.addEventListener(
-        input.eventType,
-        this.emitIfSubcribedKeyboard.bind(this),
-      );
+      window.addEventListener(input.eventType, this.emitIfSubcribedKeyboard.bind(this));
       this._keyboardEventMappings.set(input.eventType, [action]);
     }
   }
@@ -167,10 +187,7 @@ export class InputManager extends EventEmitter<Action> {
     if (this._mouseEventMappings.has(input.eventType)) {
       this._mouseEventMappings.get(input.eventType).push(action);
     } else {
-      window.addEventListener(
-        input.eventType,
-        this.emitIfSubscribedMouse.bind(this),
-      );
+      window.addEventListener(input.eventType, this.emitIfSubscribedMouse.bind(this));
       this._mouseEventMappings.set(input.eventType, [action]);
     }
   }
@@ -179,10 +196,7 @@ export class InputManager extends EventEmitter<Action> {
     if (this._pointerEventMappings.has(input.eventType)) {
       this._pointerEventMappings.get(input.eventType).push(action);
     } else {
-      window.addEventListener(
-        input.eventType,
-        this.emitIfSubscribedPointer.bind(this),
-      );
+      window.addEventListener(input.eventType, this.emitIfSubscribedPointer.bind(this));
       this._pointerEventMappings.set(input.eventType, [action]);
     }
   }

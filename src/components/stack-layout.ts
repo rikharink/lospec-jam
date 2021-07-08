@@ -65,17 +65,6 @@ export class StackLayout extends ContentView {
     return this._container.height;
   }
 
-  public centerInParent() {
-    let parentSize: Size = [this.parent.width, this.parent.height];
-    let [x, y] = calculateCenter(parentSize, getSize(this._container));
-    this._container.position.set(x, y);
-  }
-
-  public centerInScreen() {
-    let [x, y] = calculateCenter(Game.game.size, getSize(this._container));
-    this._container.position.set(x, y);
-  }
-
   public get position() {
     return this._container.position;
   }

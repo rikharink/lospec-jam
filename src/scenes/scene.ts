@@ -9,4 +9,6 @@ export interface Scene extends Identifiable {
   ticker?: Ticker;
   canPause: boolean;
   reset?: () => void;
+  selectNext?: () => void;
+  selectPrevious?: () => void;
 }

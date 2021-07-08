@@ -1,43 +1,55 @@
 import { Ticker } from 'pixi.js';
 import { EventEmitter } from '../event-emitter';
 import { Disposable } from '../interfaces/disposable';
-import { GamepadButtonType, GamepadAxisType, GamepadEventType } from '../types';
+import { GamepadEffect, RawGamepad } from '../interfaces/raw-gamepad';
+
+export enum GamepadManagerEventType {
+  GamepadAxisChanged,
+  GamepadButtonDown,
+  GamepadButtonUp,
+}
 
 export interface GamepadManagerEvent {
-  type: GamepadEventType;
-  gamepad: Gamepad;
+  type: GamepadManagerEventType;
+  gamepadIndex: number;
 }
 
 export interface GamepadManagerButtonEvent extends GamepadManagerEvent {
-  type: GamepadButtonType;
+  type: GamepadManagerEventType.GamepadButtonDown | GamepadManagerEventType.GamepadButtonUp;
+  button: number;
+  value?: number;
 }
 
 export interface GamepadManagerAxisEvent extends GamepadManagerEvent {
-  type: GamepadAxisType;
+  type: GamepadManagerEventType.GamepadAxisChanged;
   axis: number;
-  value: number;
+  currentValue: number;
+  oldValue: number;
+  change: number;
 }
 
 interface GamepadState {
   axesStatus: number[];
-  buttons: GamepadButton[];
   buttonsStatus: GamepadButton[];
   axesCache: number[];
   buttonsCache: GamepadButton[];
-  gamepad: Gamepad;
 }
 
 export class GamepadManager
   extends EventEmitter<GamepadManagerEvent>
-  implements Disposable
-{
+  implements Disposable {
   private static _shared: GamepadManager = new GamepadManager();
   private _ticker: Ticker = new Ticker();
   private _gamepads = new Map<number, GamepadState>();
-  private _deadzoneTreshold: number;
+  private _deadzoneTreshold: number = 0.01;
+  private _started: boolean;
 
   constructor() {
     super();
+  }
+
+  public get started() {
+    return this._started;
   }
 
   public get deadzoneTreshold() {
@@ -53,16 +65,20 @@ export class GamepadManager
   }
 
   public start() {
+    if (this._started) return;
     this._ticker.start();
     this._ticker.add(this.updateLoop.bind(this));
     window.addEventListener('gamepadconnected', this.connect.bind(this));
     window.addEventListener('gamepaddisconnected', this.disconnect.bind(this));
     for (let gp of navigator.getGamepads()) {
+      if (gp == null) continue;
       this.connectGamepad(gp);
     }
+    this._started = true;
   }
 
   public stop() {
+    if (!this._started) return;
     this._ticker.stop();
     this._ticker.remove(this.updateLoop.bind(this));
     window.removeEventListener('gamepadconnected', this.connect.bind(this));
@@ -73,21 +89,30 @@ export class GamepadManager
     for (let gp of navigator.getGamepads()) {
       this.disconnectGamepad(gp);
     }
+    this._started = false;
   }
 
   public dispose() {
     this.stop();
   }
 
+  public vibrate(gamepadIndex: number, effect: GamepadEffect): RawGamepad {
+    const gamepad = GamepadManager.getGamepadByIndex(gamepadIndex);
+    if (!gamepad || !gamepad.vibrationActuator) return;
+    gamepad.vibrationActuator.playEffect("dual-rumble", effect);
+  }
+
+  public static getGamepadByIndex(index: number): RawGamepad | null {
+    return navigator.getGamepads()[index];
+  }
+
   private getState(gamepad: Gamepad): GamepadState {
     return {
-      gamepad: gamepad,
-      buttons: [],
       buttonsCache: [],
       axesCache: [],
       axesStatus: [],
       buttonsStatus: [],
-    };
+    }
   }
 
   private connect(ev: GamepadEvent) {
@@ -110,19 +135,19 @@ export class GamepadManager
 
   private updateLoop() {
     if (this._gamepads.size === 0) return;
-    for (let state of this._gamepads.values()) {
-      this.updateGamepadState(state);
-      this.emitEvents(state);
+    for (let [index, state] of this._gamepads) {
+      this.updateGamepadState(index, state);
+      this.emitEvents(index, state);
     }
   }
 
-  private updateGamepadState(state: GamepadState) {
-    // get the gamepad object
-    const gamepad = state.gamepad;
+  private updateGamepadState(index: number, state: GamepadState) {
+    let gamepad = navigator.getGamepads()[index];
+    if (!gamepad) return;
 
     // clear the caches
-    state.buttonsCache = [];
-    state.axesCache = [];
+    state.buttonsCache = new Array<GamepadButton>(gamepad.buttons.length);
+    state.axesCache = new Array<number>(gamepad.axes.length);
 
     // move the status from the previous frame to the caches
     for (let k = 0; k < state.buttonsStatus.length; k++) {
@@ -134,14 +159,16 @@ export class GamepadManager
     }
 
     // clear the buttons status
-    state.buttonsStatus = [];
+    state.buttonsStatus.length = 0;
 
     // loop through buttons and push the pressed ones to the array
-    const pressed = [];
+    let pressed: GamepadButton[] = [];
     if (gamepad.buttons) {
       for (let b = 0, t = gamepad.buttons.length; b < t; b++) {
         if (gamepad.buttons[b].pressed) {
-          pressed.push(state.buttons[b]);
+          pressed[b] = gamepad.buttons[b];
+        } else {
+          pressed[b] = undefined;
         }
       }
     }
@@ -151,24 +178,65 @@ export class GamepadManager
     state.axesStatus = [];
 
     // loop through axes and push their values to the array
-    const axes: number[] = [];
+    let axes: number[] = [];
     if (gamepad.axes) {
       for (let a = 0, x = gamepad.axes.length; a < x; a++) {
-        axes.push(gamepad.axes[a]);
+        axes[a] = this.applyDeadzone(gamepad.axes[a]);
       }
     }
     state.axesStatus = axes;
   }
 
   private applyDeadzone(value: number) {
-    let percentage =
-      (Math.abs(value) - this._deadzoneTreshold) / (1 - this._deadzoneTreshold);
+    let percentage = (Math.abs(value) - this._deadzoneTreshold) / (1 - this._deadzoneTreshold);
     if (percentage < 0) percentage = 0;
     return percentage * (value > 0 ? 1 : -1);
   }
 
-  private emitEvents(state: GamepadState) {
-    console.debug(state);
-    //TODO: emit relevant events if buttons/axes change
+  private emitEvents(gamepadIndex: number, state: GamepadState) {
+    let buttonsPrevious = state.buttonsCache;
+    let buttonsCurrent = state.buttonsStatus;
+
+    for (let i = 0; i < buttonsCurrent.length; i++) {
+      let previous = buttonsPrevious[i];
+      let current = buttonsCurrent[i];
+
+      //BUTTON DOWN
+      if (current) {
+        let event: GamepadManagerButtonEvent = {
+          type: GamepadManagerEventType.GamepadButtonDown,
+          gamepadIndex: gamepadIndex,
+          button: i,
+          value: current.value
+        };
+        this.emit(event);
+      }
+
+      //BUTTON UP
+      if (previous && !current) {
+        let event: GamepadManagerButtonEvent = {
+          type: GamepadManagerEventType.GamepadButtonUp,
+          gamepadIndex: gamepadIndex,
+          button: i,
+        };
+        console.debug('GAMEPAD BUTTON UP:', i);
+        this.emit(event);
+      }
+    }
+
+    let axesChange = state.axesStatus.map((value, index) => value - (state.axesCache[index] ?? 0));
+    for (let i = 0; i < axesChange.length; i++) {
+      if (axesChange[i] !== 0) {
+        let event: GamepadManagerAxisEvent = {
+          type: GamepadManagerEventType.GamepadAxisChanged,
+          gamepadIndex: gamepadIndex,
+          axis: i,
+          currentValue: state.axesStatus[i],
+          oldValue: state.axesCache[i],
+          change: axesChange[i],
+        };
+        this.emit(event);
+      }
+    }
   }
 }

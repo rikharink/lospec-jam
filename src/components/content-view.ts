@@ -1,6 +1,11 @@
 import { Container, DisplayObject, MaskData, Renderer } from "pixi.js";
+import { Game } from "../game";
+import { Size } from "../types";
+import { calculateCenter, getSize } from "../util";
 
 export class ContentView extends Container {
+    protected _selectable: boolean;
+    protected _selectionIndex: number;
 
     public get content() {
         return super.getChildAt(0);
@@ -29,6 +34,17 @@ export class ContentView extends Container {
 
     public removeChildren(_beginIndex?: number, _endIndex?: number): DisplayObject[] {
         throw Error("ContentView uses the content property");
+    }
+
+    public centerInParent() {
+        let parentSize: Size = [this.parent.width, this.parent.height];
+        let [x, y] = calculateCenter(parentSize, getSize(this.content));
+        this.position.set(x, y);
+    }
+
+    public centerInScreen() {
+        let [x, y] = calculateCenter(Game.game.size, getSize(this.content));
+        this.position.set(x, y);
     }
 
 }

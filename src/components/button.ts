@@ -39,6 +39,7 @@ const defaultButtonOptions: ButtonOptions = {
 class Button extends ContentView {
   private _options: ButtonOptions;
   private _color: number;
+  private _active: boolean;
 
   constructor(options?: Partial<ButtonOptions>) {
     super();
@@ -49,21 +50,25 @@ class Button extends ContentView {
     };
     this._color = this._options.color;
     this.draw();
+  }
 
-    const setActive = (() => {
-      this._color = this._options.activeColor;
-      this.draw();
-    }).bind(this);
+  public get active() {
+    return this._active;
+  }
 
-    const setInactive = (() => {
-      this._color = this._options.color;
-      this.draw();
-    }).bind(this);
+  public set active(value: boolean) {
+    this._active = value;
+    value ? this.setActive() : this.setInactive();
+  }
 
-    this.on('mouseover', setActive);
-    this.on('mouseout', setInactive);
-    this.on('pointerdown', setActive);
-    this.on('pointerup', setInactive);
+  private setActive() {
+    this._color = this._options.activeColor;
+    this.draw();
+  }
+
+  private setInactive() {
+    this._color = this._options.color;
+    this.draw();
   }
 
   private draw() {

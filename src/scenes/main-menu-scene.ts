@@ -1,16 +1,9 @@
-import { StackLayout } from './../components/stack-layout';
-import { SceneManager } from '../managers/scene-manager';
-import { Button } from './../components/button';
 import type { Scene } from './scene';
-import { Container, InteractionEvent } from 'pixi.js';
+import { Container } from 'pixi.js';
 import { Label } from '../components/label';
 import { Palette } from '../palette';
 import { Game } from '../game';
-
-interface MenuItem {
-  label: string;
-  scene: () => Scene;
-}
+import { Menu, MenuItem } from '../components/menu';
 
 export function getMainMenuScene(
   menuTitle: string,
@@ -27,22 +20,8 @@ export function getMainMenuScene(
 
   stage.addChild(text);
 
-  const buttons = menuItems.map((item, index) => {
-    const button = new Button({
-      text: item.label,
-    });
-    button.on('pointerup', (ev: InteractionEvent) => {
-      if (ev.data.button == 0) {
-        SceneManager.shared.currentScene = item.scene();
-      }
-    });
-
-    return button;
-  });
-
-  const menu = new StackLayout({});
-  menu.setChildren(...buttons);
+  let menu = new Menu(menuItems);
   menu.centerInScreen();
   stage.addChild(menu);
-  return { id, stage, backgroundColor, canPause: false };
+  return { id, stage, backgroundColor, canPause: false, selectNext: () => menu.selectNextItem(), selectPrevious: () => menu.selectPreviousItem() };
 }

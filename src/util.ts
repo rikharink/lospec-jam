@@ -1,4 +1,4 @@
-import type { Container } from 'pixi.js';
+import type { DisplayObject } from 'pixi.js';
 import { Graphics } from 'pixi.js';
 import type { UUIDV4, Random, Size, Position } from './types';
 
@@ -14,8 +14,9 @@ export function uuidv4(random: Random = Math.random): UUIDV4 {
   });
 }
 
-export function getSize(container: Container): Size {
-  return [container.width, container.height];
+export function getSize(item: DisplayObject): Size {
+  let { width, height } = item.getBounds();
+  return [width, height];
 }
 
 export function middle(parent: number, child: number): number {

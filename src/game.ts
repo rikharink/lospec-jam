@@ -6,9 +6,10 @@ import { Scene } from './scenes/scene';
 import { SceneManager } from './managers/scene-manager';
 import { getSettingsScene } from './scenes/settings-scene';
 import { AudioManager } from './managers/audio-manager';
-import type { Size } from './types';
+import type { GamepadButtonType, Size } from './types';
 import { InputManager } from './managers/input-manager';
 import { InputDevice } from './interfaces/game-input';
+import { GamepadManagerButtonEvent, GamepadManagerEvent, GamepadManagerEventType } from './managers/gamepad-manager';
 
 export class Game extends Application {
   private static _game?: Game;
@@ -41,11 +42,12 @@ export class Game extends Application {
     await game.loadAssets();
     game.sceneManager.game = game;
     game.mainMenu = getMainMenuScene('LOSPEC JAM\nCOME ON AND SLAM', [
-      { label: 'START', scene: getMainScene },
-      { label: 'SETTINGS', scene: getSettingsScene },
+      { label: 'START', activate: () => SceneManager.shared.currentScene = getMainScene() },
+      { label: 'SETTINGS', activate: () => SceneManager.shared.currentScene = getSettingsScene() },
       {
         label: 'CREDITS',
-        scene: () =>
+        activate: () =>
+          SceneManager.shared.currentScene =
           getCreditsScene([
             {
               title: 'CODE ART MUSIC',
@@ -77,6 +79,7 @@ export class Game extends Application {
       game.render();
     }, UPDATE_PRIORITY.LOW);
     game.addToPage();
+    game.inputManager.gamepadManager.start();
     return game;
   }
 
@@ -89,8 +92,96 @@ export class Game extends Application {
           eventType: 'keyup',
           key: 'Escape',
         },
+        {
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonUp,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            if (!e || e.type != GamepadManagerEventType.GamepadButtonUp)
+              return false;
+            return e.button === 9;
+          }
+        }
       ],
-    });
+    },
+      {
+        action: 'confirm',
+        inputs: [
+          {
+            type: InputDevice.Keyboard,
+            eventType: 'keyup',
+            key: 'Enter',
+          },
+          {
+            type: InputDevice.Gamepad,
+            eventType: GamepadManagerEventType.GamepadButtonUp,
+            predicate: (ev: GamepadManagerEvent) => {
+              let e = ev as GamepadManagerButtonEvent;
+              if (!e || e.type != GamepadManagerEventType.GamepadButtonUp)
+                return false;
+              return e.button === 0;
+            }
+          }
+        ],
+      },
+      {
+        action: 'cancel',
+        inputs: [
+          {
+            type: InputDevice.Gamepad,
+            eventType: GamepadManagerEventType.GamepadButtonUp,
+            predicate: (ev: GamepadManagerEvent) => {
+              let e = ev as GamepadManagerButtonEvent;
+              if (!e || e.type != GamepadManagerEventType.GamepadButtonUp)
+                return false;
+              return e.button === 1;
+            }
+          }
+        ],
+      },
+      {
+        action: 'next-item',
+        inputs: [
+          {
+            type: InputDevice.Keyboard,
+            eventType: 'keydown',
+            key: 'Tab',
+            predicate: (ev: KeyboardEvent) => !ev.shiftKey
+          },
+          {
+            type: InputDevice.Gamepad,
+            eventType: GamepadManagerEventType.GamepadButtonUp,
+            predicate: (ev: GamepadManagerEvent) => {
+              let e = ev as GamepadManagerButtonEvent;
+              if (!e || e.type != GamepadManagerEventType.GamepadButtonUp)
+                return false;
+              return e.button === 13;
+            }
+          }
+        ]
+      },
+      {
+        action: 'previous-item',
+        inputs: [
+          {
+            type: InputDevice.Keyboard,
+            eventType: 'keydown',
+            key: 'Tab',
+            predicate: (ev: KeyboardEvent) => ev.shiftKey
+          },
+          {
+            type: InputDevice.Gamepad,
+            eventType: GamepadManagerEventType.GamepadButtonUp,
+            predicate: (ev: GamepadManagerEvent) => {
+              let e = ev as GamepadManagerButtonEvent;
+              if (!e || e.type != GamepadManagerEventType.GamepadButtonUp)
+                return false;
+              return e.button === 12;
+            }
+          }
+        ]
+      }
+    );
   }
 
   public addToPage() {
