@@ -5,7 +5,6 @@ import { StackDirection, StackLayout } from '../components/stack-layout';
 import { Toggle } from '../components/toggle';
 import { Label } from '../components/label';
 import { Palette } from '../palette';
-import { getBackButton } from '../components/button';
 import { Game } from '../game';
 import { Slider } from '../components/slider';
 
@@ -106,8 +105,6 @@ export function getSettingsScene(): Scene {
   settings.setChildren(main, music, fx, mainVolume, musicVolume, fxVolume);
   settings.centerInScreen();
   stage.addChild(settings);
-
-  stage.addChild(getBackButton());
 
   return {
     id,

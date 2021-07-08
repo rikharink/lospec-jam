@@ -1,5 +1,4 @@
-import { InteractionEvent } from "pixi.js";
-import { InputManager } from "../managers/input-manager";
+import { Game } from "../game";
 import { Button } from "./button";
 import { ContentView } from "./content-view";
 import { StackLayout } from "./stack-layout";
@@ -9,71 +8,40 @@ export interface MenuItem {
     activate: () => void;
 }
 
+interface MenuOptions {
+    items: MenuItem[]
+    selectionIndex: number;
+}
+
 export class Menu extends ContentView {
     private _items: MenuItem[];
-    private _selectedItem: number = -1;
     private _buttons: Button[];
 
-    constructor(items: MenuItem[]) {
-        super();
+    constructor({ items = [], selectionIndex = 0 }: Partial<MenuOptions>) {
+        super({ selectionIndex });
+        this._selectable = false;
         this._items = items;
-
         this._buttons = items.map((item, index) => {
             const button = new Button({
                 text: item.label,
-            });
-            button.on('mouseover', () => {
-                this.selectItem(index);
-            });
-            button.on('mouseout', () => {
-                this.selectItem(-1);
-            })
-            button.on('pointerup', (ev: InteractionEvent) => {
-                if (ev.data.button == 0) {
-                    this.activateItem();
-                }
+                selectable: true,
+                selectionIndex: selectionIndex + index,
+                activation: () => item.activate()
             });
             return button;
         });
         let menu = new StackLayout({});
         menu.setChildren(...this._buttons);
         this.content = menu;
-
-        InputManager.shared.on(ev => {
-            switch (ev) {
-                case 'confirm':
-                    this.activateItem();
-                    break;
-            }
-        })
     }
 
-    public activateItem() {
-        if (this._selectedItem >= 0 && this._selectedItem < this._items.length)
-            this._items[this._selectedItem].activate();
+    public get items() {
+        return this._items;
     }
 
-    public selectItem(index: number) {
-        this._selectedItem = index;
-        this.selectButton(index);
+    public get buttons() {
+        return this._buttons;
     }
 
-    public selectNextItem() {
-        this._selectedItem = (this._selectedItem + 1) % this._items.length;
-        this.selectButton(this._selectedItem);
-    }
-
-    public selectPreviousItem() {
-        this._selectedItem--;
-        if (this._selectedItem < 0) {
-            this._selectedItem = this._items.length - 1;
-        }
-        this.selectButton(this._selectedItem);
-    }
-
-    private selectButton(index: number) {
-        this._buttons.forEach(button => button.active = false);
-        if (index >= 0 && index < this._buttons.length)
-            this._buttons[index].active = true;
-    }
+    redraw() { }
 }

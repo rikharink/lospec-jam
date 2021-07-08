@@ -6,7 +6,7 @@ import { Scene } from './scenes/scene';
 import { SceneManager } from './managers/scene-manager';
 import { getSettingsScene } from './scenes/settings-scene';
 import { AudioManager } from './managers/audio-manager';
-import type { GamepadButtonType, Size } from './types';
+import type { Size } from './types';
 import { InputManager } from './managers/input-manager';
 import { InputDevice } from './interfaces/game-input';
 import { GamepadManagerButtonEvent, GamepadManagerEvent, GamepadManagerEventType } from './managers/gamepad-manager';

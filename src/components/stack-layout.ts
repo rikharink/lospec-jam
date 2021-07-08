@@ -1,15 +1,12 @@
-import { Container, DisplayObject, ObservablePoint } from 'pixi.js';
-import { Game } from '../game';
-import { Size } from '../types';
-import { calculateCenter, getSize } from '../util';
-import { ContentView } from './content-view';
+import { Container, DisplayObject } from 'pixi.js';
+import { ContentView, ContentViewOptions } from './content-view';
 
 export enum StackDirection {
   Horizontal,
   Vertical,
 }
 
-interface StackLayoutOptions {
+interface StackLayoutOptions extends ContentViewOptions {
   direction: StackDirection;
   spacing: number;
 }
@@ -23,8 +20,9 @@ export class StackLayout extends ContentView {
   public constructor({
     direction = StackDirection.Vertical,
     spacing = 4,
+    ...rest
   }: Partial<StackLayoutOptions>) {
-    super();
+    super(rest);
     this._direction = direction;
     this._spacing = spacing;
     this._offset = 0;
@@ -68,4 +66,6 @@ export class StackLayout extends ContentView {
   public get position() {
     return this._container.position;
   }
+
+  redraw() { }
 }

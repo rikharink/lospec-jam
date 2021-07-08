@@ -5,7 +5,6 @@ import { Label } from '../components/label';
 import { Palette } from '../palette';
 import type { Scene } from './scene';
 import { Game } from '../game';
-import { getBackButton } from '../components/button';
 
 interface Credit {
   title: string;
@@ -63,7 +62,6 @@ export function getCreditsScene(credits: Credit[]): Scene {
   const scroll = new ScrollView(0, layout.y, width, height);
   scroll.content = layout;
   stage.addChild(scroll);
-  stage.addChild(getBackButton());
 
   let ticker = new Ticker();
   let time = 0;

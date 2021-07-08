@@ -20,8 +20,8 @@ export function getMainMenuScene(
 
   stage.addChild(text);
 
-  let menu = new Menu(menuItems);
+  let menu = new Menu({ items: menuItems });
   menu.centerInScreen();
   stage.addChild(menu);
-  return { id, stage, backgroundColor, canPause: false, selectNext: () => menu.selectNextItem(), selectPrevious: () => menu.selectPreviousItem() };
+  return { id, stage, backgroundColor, canPause: false, selectedItem: 0, selectableItems: menu.buttons };
 }

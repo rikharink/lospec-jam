@@ -2,15 +2,11 @@ import { Label } from './label';
 import {
   Graphics,
   IBitmapTextStyle,
-  InteractionEvent,
 } from 'pixi.js';
 import { Palette } from '../palette';
-import { SceneManager } from '../managers/scene-manager';
-import { middle } from '../util';
-import { Game } from '../game';
-import { ContentView } from './content-view';
+import { ContentView, ContentViewOptions } from './content-view';
 
-export interface ButtonOptions {
+export interface ButtonOptions extends ContentViewOptions {
   width: number;
   height: number;
   color: number;
@@ -34,46 +30,32 @@ const defaultButtonOptions: ButtonOptions = {
   textOptions: {
     tint: Palette.text,
   },
+  selectable: false,
+  isSelected: false,
+  selectionIndex: -1,
+  activation: undefined,
 };
 
-class Button extends ContentView {
+export class Button extends ContentView {
   private _options: ButtonOptions;
-  private _color: number;
-  private _active: boolean;
 
   constructor(options?: Partial<ButtonOptions>) {
-    super();
-    super.interactive = true;
+    super(options);
     this._options = {
       ...defaultButtonOptions,
       ...options,
     };
-    this._color = this._options.color;
-    this.draw();
+    this.redraw();
   }
 
-  public get active() {
-    return this._active;
+  public get color() {
+    return this._isSelected ? this._options.activeColor : this._options.color;
   }
 
-  public set active(value: boolean) {
-    this._active = value;
-    value ? this.setActive() : this.setInactive();
-  }
-
-  private setActive() {
-    this._color = this._options.activeColor;
-    this.draw();
-  }
-
-  private setInactive() {
-    this._color = this._options.color;
-    this.draw();
-  }
-
-  private draw() {
+  protected redraw() {
+    console.debug("REDRAW");
     const graphics = new Graphics();
-    graphics.beginFill(this._color);
+    graphics.beginFill(this._options.color);
     graphics.drawRoundedRect(
       0,
       0,
@@ -111,20 +93,3 @@ class Button extends ContentView {
     this.content = graphics;
   }
 }
-
-function getBackButton() {
-  const backButton = new Button({ text: 'BACK' });
-  const [width, height] = Game.game.size;
-  backButton.position.set(
-    middle(width, backButton.width),
-    height - backButton.height - 4,
-  );
-  backButton.on('pointerup', (ev: InteractionEvent) => {
-    if (ev.data.button === 0) {
-      SceneManager.shared.back();
-    }
-  });
-  return backButton;
-}
-
-export { getBackButton, Button };

@@ -1,11 +1,93 @@
-import { Container, DisplayObject, MaskData, Renderer } from "pixi.js";
+import { Container, DisplayObject } from "pixi.js";
 import { Game } from "../game";
 import { Size } from "../types";
 import { calculateCenter, getSize } from "../util";
 
-export class ContentView extends Container {
+export interface ContentViewOptions {
+    selectable: boolean;
+    selectionIndex: number;
+    isSelected: boolean;
+    activation: () => void | undefined;
+}
+
+export abstract class ContentView extends Container {
     protected _selectable: boolean;
     protected _selectionIndex: number;
+    protected _isSelected: boolean;
+    protected _activation: () => void | undefined;
+
+    constructor({ selectable = false, selectionIndex = -1, isSelected = false, activation = undefined }: Partial<ContentViewOptions>) {
+        super();
+        this._selectable = selectable;
+        this._selectionIndex = selectionIndex;
+        this._isSelected = isSelected;
+        this._activation = activation;
+        this.subscribeIfSelectable();
+    }
+
+    private subscribeIfSelectable() {
+        if (this._selectable) {
+            this.interactive = true;
+            this.on('mouseover', this.notifyItemSelected.bind(this));
+            this.on('mouseout', this.notifyItemDeselected.bind(this));
+        } else {
+            this.off('mouseover', this.notifyItemSelected.bind(this));
+            this.off('mouseout', this.notifyItemDeselected.bind(this));
+        }
+    }
+
+    private notifyItemSelected() {
+        Game.game.sceneManager.selectItem(this._selectionIndex);
+    }
+
+    private notifyItemDeselected() {
+        Game.game.sceneManager.selectItem(-1);
+    }
+
+    protected abstract redraw(): void;
+
+    public get selectable() {
+        return this._selectable;
+    }
+
+    public set selectable(value: boolean) {
+        this._selectable = value;
+        this.subscribeIfSelectable();
+    }
+
+    public get selectionIndex() {
+        return this._selectionIndex;
+    }
+
+    public set selectionIndex(index: number) {
+        this._selectionIndex = index;
+    }
+
+    public get isSelect() {
+        return this._isSelected;
+    }
+
+    public select() {
+        if (this.selectable) {
+            this._isSelected = true;
+            this.redraw();
+        }
+    }
+
+    public deselect() {
+        if (this.selectable) {
+            this._isSelected = false;
+            this.redraw();
+        }
+    }
+
+    public activate() {
+        this._activation?.();
+    }
+
+    public set activation(func: () => void) {
+        this._activation = func;
+    }
 
     public get content() {
         return super.getChildAt(0);
@@ -46,5 +128,4 @@ export class ContentView extends Container {
         let [x, y] = calculateCenter(Game.game.size, getSize(this.content));
         this.position.set(x, y);
     }
-
 }
