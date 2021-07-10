@@ -4,6 +4,7 @@ import { Label } from '../components/label';
 import { Palette } from '../palette';
 import { Game } from '../game';
 import { Menu, MenuItem } from '../components/menu';
+import { SelectableItem, SelectionManager } from '../managers/selection-manager';
 
 export function getMainMenuScene(
   menuTitle: string,
@@ -22,6 +23,8 @@ export function getMainMenuScene(
 
   let menu = new Menu({ items: menuItems });
   menu.centerInScreen();
+
+  SelectionManager.shared.selectableItems = menu.buttons.map<SelectableItem>(b => { return { selectionIndex: b.selectionIndex, update: b.redraw.bind(b), activate: b.activate.bind(b) } });
   stage.addChild(menu);
-  return { id, stage, backgroundColor, canPause: false, selectedItem: 0, selectableItems: menu.buttons };
+  return { id, stage, backgroundColor, canPause: false };
 }

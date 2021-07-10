@@ -22,7 +22,6 @@ export class SceneManager {
       ticker: Ticker.shared,
     });
     this.subscribeToEvents();
-    this.updateSelection();
   }
 
   private subscribeToEvents() {
@@ -31,12 +30,6 @@ export class SceneManager {
         switch (ev) {
           case 'menu':
             this.togglePause();
-            break;
-          case 'next-item':
-            this.selectNextItem();
-            break;
-          case 'previous-item':
-            this.selectPreviousItem();
             break;
         }
       }).bind(this),
@@ -133,42 +126,5 @@ export class SceneManager {
 
   public set transitionDuration(duration: Milliseconds) {
     this._transitionDuration = duration;
-  }
-
-  public selectItem(index: number) {
-    if (this.currentScene) {
-      this.currentScene.selectedItem = index;
-      this.updateSelection();
-    }
-  }
-
-  public selectNextItem() {
-    if (this.currentScene?.selectedItem >= 0 && this.currentScene?.selectableItems?.length > 0) {
-      console.log("NEXT ITEM");
-      this.currentScene.selectedItem = (this.currentScene.selectedItem + 1) % this.currentScene.selectableItems.length;
-      this.updateSelection();
-    }
-  }
-
-  public selectPreviousItem() {
-    if (this.currentScene?.selectedItem >= 0 && this.currentScene.selectableItems?.length > 0) {
-      console.log("PREVIOUS ITEM");
-      this.currentScene.selectedItem = this.currentScene.selectedItem - 1;
-      if (this.currentScene.selectedItem < 0) {
-        this.currentScene.selectedItem = this.currentScene.selectableItems.length - 1;
-      }
-      this.updateSelection();
-    }
-  }
-
-  private updateSelection() {
-    if (this.currentScene?.selectableItems) {
-      for (let item of this.currentScene.selectableItems) {
-        item.deselect();
-      }
-      if (this.currentScene?.selectedItem >= 0 && this.currentScene?.selectedItem < this.currentScene.selectableItems.length) {
-        this.currentScene.selectableItems[this.currentScene.selectedItem].select();
-      }
-    }
   }
 }

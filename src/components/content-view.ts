@@ -1,26 +1,24 @@
 import { Container, DisplayObject } from "pixi.js";
 import { Game } from "../game";
+import { SelectionManager } from "../managers/selection-manager";
 import { Size } from "../types";
 import { calculateCenter, getSize } from "../util";
 
 export interface ContentViewOptions {
     selectable: boolean;
     selectionIndex: number;
-    isSelected: boolean;
     activation: () => void | undefined;
 }
 
 export abstract class ContentView extends Container {
     protected _selectable: boolean;
     protected _selectionIndex: number;
-    protected _isSelected: boolean;
     protected _activation: () => void | undefined;
 
-    constructor({ selectable = false, selectionIndex = -1, isSelected = false, activation = undefined }: Partial<ContentViewOptions>) {
+    constructor({ selectable = false, selectionIndex = -1, activation = undefined }: Partial<ContentViewOptions>) {
         super();
         this._selectable = selectable;
         this._selectionIndex = selectionIndex;
-        this._isSelected = isSelected;
         this._activation = activation;
         this.subscribeIfSelectable();
     }
@@ -37,14 +35,14 @@ export abstract class ContentView extends Container {
     }
 
     private notifyItemSelected() {
-        Game.game.sceneManager.selectItem(this._selectionIndex);
+        this.select();
     }
 
     private notifyItemDeselected() {
-        Game.game.sceneManager.selectItem(-1);
+        this.deselect();
     }
 
-    protected abstract redraw(): void;
+    public abstract redraw(): void;
 
     public get selectable() {
         return this._selectable;
@@ -63,21 +61,19 @@ export abstract class ContentView extends Container {
         this._selectionIndex = index;
     }
 
-    public get isSelect() {
-        return this._isSelected;
+    public get isSelected() {
+        return this.selectable && SelectionManager.shared.isSelected(this._selectionIndex);
     }
 
     public select() {
-        if (this.selectable) {
-            this._isSelected = true;
-            this.redraw();
+        if (this.selectable && !SelectionManager.shared.isSelected(this._selectionIndex)) {
+            SelectionManager.shared.select(this._selectionIndex);
         }
     }
 
     public deselect() {
-        if (this.selectable) {
-            this._isSelected = false;
-            this.redraw();
+        if (this.isSelected) {
+            SelectionManager.shared.deselect(this._selectionIndex);
         }
     }
 

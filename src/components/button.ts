@@ -31,7 +31,6 @@ const defaultButtonOptions: ButtonOptions = {
     tint: Palette.text,
   },
   selectable: false,
-  isSelected: false,
   selectionIndex: -1,
   activation: undefined,
 };
@@ -49,13 +48,12 @@ export class Button extends ContentView {
   }
 
   public get color() {
-    return this._isSelected ? this._options.activeColor : this._options.color;
+    return this.isSelected ? this._options.activeColor : this._options.color;
   }
 
-  protected redraw() {
-    console.debug("REDRAW");
+  public redraw() {
     const graphics = new Graphics();
-    graphics.beginFill(this._options.color);
+    graphics.beginFill(this.color);
     graphics.drawRoundedRect(
       0,
       0,
