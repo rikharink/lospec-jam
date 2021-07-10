@@ -6,7 +6,7 @@ export enum StackDirection {
   Vertical,
 }
 
-interface StackLayoutOptions extends ContentViewOptions {
+export interface StackLayoutOptions extends ContentViewOptions {
   direction: StackDirection;
   spacing: number;
 }

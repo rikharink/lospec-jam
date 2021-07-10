@@ -17,7 +17,7 @@ interface ToggleOptions {
 export class Toggle extends ContentView {
   private _options: ToggleOptions;
   constructor(options?: Partial<ToggleOptions>) {
-    super();
+    super({});
     this._options = {
       size: options?.size ?? 32,
       backgroundColor: options?.backgroundColor ?? Palette.foreground,
@@ -30,14 +30,13 @@ export class Toggle extends ContentView {
       disabled: options?.disabled ?? false,
     };
     this.interactive = !this.disabled;
-    this.on('click', this.toggle.bind(this));
-    this.draw();
+    this.redraw();
   }
 
   public toggle() {
     this._options.state = !this._options.state;
     this.emit('toggle', this._options.state);
-    this.draw();
+    this.redraw();
   }
 
   public get disabled() {
@@ -47,7 +46,7 @@ export class Toggle extends ContentView {
   public set disabled(state: boolean) {
     this._options.disabled = state;
     this.interactive = !state;
-    this.draw();
+    this.redraw();
   }
 
   private get disabledLineColor(): number {
@@ -58,7 +57,7 @@ export class Toggle extends ContentView {
     return this._options.disabledBackgroundColor;
   }
 
-  private draw() {
+  public redraw() {
     const t = new Graphics();
     t.beginFill(
       this.disabled

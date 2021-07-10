@@ -3,7 +3,7 @@ import { Palette } from '../palette';
 
 const defaultStyle: Partial<IBitmapTextStyle> = {
   fontName: 'Press Start 2P',
-  fontSize: 32,
+  fontSize: 12,
   align: 'center',
   tint: Palette.text,
 };

@@ -11,5 +11,12 @@ export function getMainScene(): Scene {
   let ticker = new Ticker();
   ticker.add(() => {});
 
-  return { id, stage, backgroundColor, ticker, canPause: true };
+  return {
+    id,
+    stage,
+    backgroundColor,
+    ticker,
+    canPause: true,
+    selectableItems: [],
+  };
 }

@@ -7,7 +7,7 @@ export class ScrollView extends ContentView {
   private _startY: number;
 
   constructor(x: number, y: number, width: number, height: number) {
-    super();
+    super({});
     this.mask = getMask(x, y, width, height);
   }
 
@@ -35,4 +35,6 @@ export class ScrollView extends ContentView {
   public setMask(x: number, y: number, width: number, height: number) {
     this.mask = getMask(x, y, width, height);
   }
+
+  public redraw() {}
 }

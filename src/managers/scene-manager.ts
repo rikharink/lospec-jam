@@ -1,3 +1,5 @@
+import { SelectionManager } from './selection-manager';
+import { Modal, ModalManager } from './modal-manager';
 import { InputManager } from './input-manager';
 import { Container, Ticker } from 'pixi.js';
 import type { Milliseconds, CameraTransition } from '../types';
@@ -15,7 +17,8 @@ export class SceneManager {
   private _transitionDuration: Milliseconds = 200;
   private static _sceneManager = new SceneManager();
   private _paused: boolean = false;
-  private _pauseScreen?: Dialog;
+  private _pauseScreen?: Modal;
+  private _modalManager: ModalManager = ModalManager.shared;
 
   constructor() {
     this._camera = new Camera({
@@ -28,8 +31,11 @@ export class SceneManager {
     InputManager.shared.on(
       ((ev: string) => {
         switch (ev) {
-          case 'menu':
+          case 'start':
             this.togglePause();
+            break;
+          case 'back':
+            this.back();
             break;
         }
       }).bind(this),
@@ -78,7 +84,7 @@ export class SceneManager {
         cancelLabel: 'RESUME',
       });
     }
-    this.currentScene?.stage.addChild(this._pauseScreen);
+    this._modalManager.show(this._pauseScreen);
   }
 
   private mainMenu() {
@@ -90,7 +96,7 @@ export class SceneManager {
     if (!this.currentScene.canPause) return;
     this._paused = false;
     this.currentScene?.ticker?.start();
-    this.currentScene?.stage.removeChild(this._pauseScreen);
+    this._modalManager.hide();
   }
 
   public set currentScene(scene: Scene) {
@@ -103,12 +109,18 @@ export class SceneManager {
     if (this._sceneStack.length > 1) {
       let current = this._sceneStack.shift();
       current?.ticker?.stop();
+      let selection = this._sceneStack[0].selectedItem;
       this.setScene(this._sceneStack[0]);
+      SelectionManager.shared.select(selection ?? 0);
     }
   }
 
   private setScene(scene: Scene) {
-    this._sceneStack[0]?.ticker?.stop();
+    if (this._sceneStack[0]) {
+      this._sceneStack[0].ticker?.stop();
+      console.log('set scene selection', SelectionManager.shared.selectedItem);
+      this._sceneStack[0].selectedItem = SelectionManager.shared.selectedItem;
+    }
     this._sceneStack.unshift(scene);
     if (this._root.children.length > 0) this._root.removeChildAt(0);
     this._root.addChild(scene.stage);
@@ -118,6 +130,9 @@ export class SceneManager {
     this.game.audioManager.playTrack(scene.track);
     scene.ticker?.start();
     scene.reset?.();
+
+    SelectionManager.shared.select(scene.selectedItem ?? 0);
+    SelectionManager.shared.selectableItems = scene.selectableItems;
   }
 
   public get transitionDuration(): Milliseconds {

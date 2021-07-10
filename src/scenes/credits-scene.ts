@@ -1,6 +1,6 @@
+import { StackLayout, StackLayoutOptions } from './../components/stack-layout';
 import { ScrollView } from './../components/scroll-view';
-import { StackLayout } from '../components/stack-layout';
-import { Container, InteractionEvent, Ticker } from 'pixi.js';
+import { Container, Ticker } from 'pixi.js';
 import { Label } from '../components/label';
 import { Palette } from '../palette';
 import type { Scene } from './scene';
@@ -12,37 +12,49 @@ interface Credit {
   link?: string;
 }
 
-function getCredit(c: Credit): Container[] {
-  const layout = new StackLayout({
-    spacing: 4,
-  });
+class CreditComponent extends StackLayout {
+  private _title: Label;
+  private _description: Label;
+  private _link?: string;
+
+  constructor(
+    title: Label,
+    description: Label,
+    link: string | undefined,
+    options: Partial<StackLayoutOptions>,
+  ) {
+    super(options);
+    this._title = title;
+    this._description = description;
+    this._link = link;
+    this.setChildren(title, description);
+  }
+  public activate() {
+    if (this._link) {
+      window.open(this._link);
+    }
+  }
+
+  public redraw() {
+    if (this.isSelected) {
+      this._title.tint = Palette.accent;
+      this._description.tint = Palette.accent;
+    } else {
+      this._title.tint = Palette.text;
+      this._description.tint = Palette.text;
+    }
+  }
+}
+
+function getCredit(c: Credit): CreditComponent {
   let title = new Label(c.title);
   title.anchor.set(0.5, 0);
   let description = new Label(c.description, { align: 'center' });
   description.anchor.set(0.5, 0);
-  layout.setChildren(title, description);
-
-  let setActive = () => {
-    title.tint = Palette.foreground;
-    description.tint = Palette.foreground;
-  };
-
-  let setInactive = () => {
-    title.tint = Palette.text;
-    description.tint = Palette.text;
-  };
-
-  layout.interactive = true;
-  layout.on('mouseover', setActive);
-  layout.on('mouseout', setInactive);
-  layout.on('pointerdown', setActive);
-  layout.on('pointerup', setInactive);
-  layout.on('pointerup', (ev: InteractionEvent) => {
-    if (ev.data.button == 0 && c.link) {
-      window.open(c.link);
-    }
+  const layout = new CreditComponent(title, description, c.link, {
+    spacing: 4,
   });
-  return [layout];
+  return layout;
 }
 
 export function getCreditsScene(credits: Credit[]): Scene {
@@ -56,32 +68,37 @@ export function getCreditsScene(credits: Credit[]): Scene {
   text.position.set(width / 2, 20);
   stage.addChild(text);
 
-  const layout = new StackLayout({ spacing: 42 });
-  layout.setChildren(...credits.flatMap(getCredit));
-  layout.position.set(width / 2, 75);
+  const layout = new StackLayout({ spacing: 12 });
+  let creditItems = credits.map(getCredit);
+  layout.setChildren(...creditItems);
+  layout.position.set(width / 2, 38);
   const scroll = new ScrollView(0, layout.y, width, height);
   scroll.content = layout;
   stage.addChild(scroll);
 
   let ticker = new Ticker();
-  let time = 0;
   setTimeout(
     (() =>
       ticker.add(
         ((delta: number) => {
-          time += delta;
-          if (time > 1) {
-            time = 0;
-            scroll.scroll(-1);
-            let bounds = scroll.content.getBounds();
-            if (bounds.y < -bounds.height) {
-              scroll.scroll(height + bounds.height);
-            }
+          scroll.scroll(-1 / delta / 16);
+          let bounds = scroll.content.getBounds();
+          if (bounds.y < -bounds.height) {
+            scroll.scroll(height + bounds.height);
           }
         }).bind(this),
       )).bind(this),
     1000,
   );
+
+  let selectableItems = creditItems.map((c, i) => {
+    c.selectionIndex = i;
+    return {
+      selectionIndex: i,
+      update: c.redraw.bind(c),
+      activate: c.activate.bind(c),
+    };
+  });
 
   return {
     id,
@@ -90,5 +107,6 @@ export function getCreditsScene(credits: Credit[]): Scene {
     ticker,
     canPause: false,
     reset: () => scroll.reset(),
+    selectableItems,
   };
 }

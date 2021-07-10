@@ -6,23 +6,23 @@ interface IPalette {
   accent: number;
 }
 
-class DecTen implements IPalette {
+class LtroOne implements IPalette {
   [color: number]: number;
   constructor() {
     [
-      0xfffdce, 0xffcd6b, 0x78da22, 0x17854e, 0xe66649, 0x8349a6, 0x38153b,
-      0xa6ced2, 0x4796cf, 0x204075,
+      0xeae1f0, 0x7e7185, 0x37313b, 0x1d1c1f, 0x89423f, 0xf63f4c, 0xfdbb27,
+      0x8d902e, 0x4159cb, 0x59a7af,
     ].forEach((c, i) => {
       this[i] = c;
     });
   }
 
   public get foreground(): number {
-    return this[5];
+    return this[8];
   }
 
   public get background(): number {
-    return this[9];
+    return this[2];
   }
 
   public get text(): number {
@@ -30,8 +30,8 @@ class DecTen implements IPalette {
   }
 
   public get accent(): number {
-    return this[6];
+    return this[9];
   }
 }
 
-export const Palette = new DecTen();
+export const Palette = new LtroOne();

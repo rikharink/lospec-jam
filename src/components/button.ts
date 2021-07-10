@@ -1,8 +1,5 @@
 import { Label } from './label';
-import {
-  Graphics,
-  IBitmapTextStyle,
-} from 'pixi.js';
+import { Graphics, IBitmapTextStyle } from 'pixi.js';
 import { Palette } from '../palette';
 import { ContentView, ContentViewOptions } from './content-view';
 
@@ -19,8 +16,8 @@ export interface ButtonOptions extends ContentViewOptions {
 }
 
 const defaultButtonOptions: ButtonOptions = {
-  width: 200,
-  height: 42,
+  width: 100,
+  height: 20,
   border: 0,
   borderColor: Palette.accent,
   borderRadius: 5,
@@ -28,6 +25,7 @@ const defaultButtonOptions: ButtonOptions = {
   activeColor: Palette.accent,
   text: '',
   textOptions: {
+    fontSize: 16,
     tint: Palette.text,
   },
   selectable: false,

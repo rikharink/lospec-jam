@@ -4,8 +4,8 @@ import { Game } from './game';
 import { Palette } from './palette';
 
 Game.init({
-  width: 640,
-  height: 480,
+  width: 240,
+  height: 135,
   sharedTicker: true,
   sharedLoader: true,
   backgroundColor: Palette.background,

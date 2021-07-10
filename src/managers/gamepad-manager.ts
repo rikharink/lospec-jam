@@ -15,7 +15,9 @@ export interface GamepadManagerEvent {
 }
 
 export interface GamepadManagerButtonEvent extends GamepadManagerEvent {
-  type: GamepadManagerEventType.GamepadButtonDown | GamepadManagerEventType.GamepadButtonUp;
+  type:
+    | GamepadManagerEventType.GamepadButtonDown
+    | GamepadManagerEventType.GamepadButtonUp;
   button: number;
   value?: number;
 }
@@ -37,7 +39,8 @@ interface GamepadState {
 
 export class GamepadManager
   extends EventEmitter<GamepadManagerEvent>
-  implements Disposable {
+  implements Disposable
+{
   private static _shared: GamepadManager = new GamepadManager();
   private _ticker: Ticker = new Ticker();
   private _gamepads = new Map<number, GamepadState>();
@@ -99,20 +102,11 @@ export class GamepadManager
   public vibrate(gamepadIndex: number, effect: GamepadEffect): RawGamepad {
     const gamepad = GamepadManager.getGamepadByIndex(gamepadIndex);
     if (!gamepad || !gamepad.vibrationActuator) return;
-    gamepad.vibrationActuator.playEffect("dual-rumble", effect);
+    gamepad.vibrationActuator.playEffect('dual-rumble', effect);
   }
 
   public static getGamepadByIndex(index: number): RawGamepad | null {
     return navigator.getGamepads()[index];
-  }
-
-  private getState(gamepad: Gamepad): GamepadState {
-    return {
-      buttonsCache: [],
-      axesCache: [],
-      axesStatus: [],
-      buttonsStatus: [],
-    }
   }
 
   private connect(ev: GamepadEvent) {
@@ -124,7 +118,12 @@ export class GamepadManager
   }
 
   private connectGamepad(gamepad: Gamepad) {
-    this._gamepads.set(gamepad.index, this.getState(gamepad));
+    this._gamepads.set(gamepad.index, {
+      buttonsCache: [],
+      axesCache: [],
+      axesStatus: [],
+      buttonsStatus: [],
+    });
   }
 
   private disconnectGamepad(gamepad: Gamepad) {
@@ -188,7 +187,8 @@ export class GamepadManager
   }
 
   private applyDeadzone(value: number) {
-    let percentage = (Math.abs(value) - this._deadzoneTreshold) / (1 - this._deadzoneTreshold);
+    let percentage =
+      (Math.abs(value) - this._deadzoneTreshold) / (1 - this._deadzoneTreshold);
     if (percentage < 0) percentage = 0;
     return percentage * (value > 0 ? 1 : -1);
   }
@@ -207,7 +207,7 @@ export class GamepadManager
           type: GamepadManagerEventType.GamepadButtonDown,
           gamepadIndex: gamepadIndex,
           button: i,
-          value: current.value
+          value: current.value,
         };
         this.emit(event);
       }
@@ -219,12 +219,13 @@ export class GamepadManager
           gamepadIndex: gamepadIndex,
           button: i,
         };
-        console.debug('GAMEPAD BUTTON UP:', i);
         this.emit(event);
       }
     }
 
-    let axesChange = state.axesStatus.map((value, index) => value - (state.axesCache[index] ?? 0));
+    let axesChange = state.axesStatus.map(
+      (value, index) => value - (state.axesCache[index] ?? 0),
+    );
     for (let i = 0; i < axesChange.length; i++) {
       if (axesChange[i] !== 0) {
         let event: GamepadManagerAxisEvent = {
