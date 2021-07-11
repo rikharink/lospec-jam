@@ -64,7 +64,6 @@ export class SelectionManager extends EventEmitter<SelectionEvent> {
   private set selectedItem(index: number) {
     this._previousItem = this.selectedItem;
     this._selectedItem = index;
-    console.log('SET SELECTION', this._selectedItem);
   }
 
   public selectNextItem() {

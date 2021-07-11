@@ -109,6 +109,7 @@ export class SceneManager {
     if (this._sceneStack.length > 1) {
       let current = this._sceneStack.shift();
       current?.ticker?.stop();
+      current.selectedItem = SelectionManager.shared.selectedItem;
       let selection = this._sceneStack[0].selectedItem;
       this.setScene(this._sceneStack[0]);
       SelectionManager.shared.select(selection ?? 0);

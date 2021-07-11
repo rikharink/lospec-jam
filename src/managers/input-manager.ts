@@ -72,6 +72,7 @@ type Input = KeyboardInput | PointerInput | MouseInput | GamepadInput;
 
 interface GameInputEvent {
   action: Action;
+  aliases?: Action[];
   inputs: Input[];
 }
 
@@ -82,6 +83,7 @@ export class InputManager extends EventEmitter<Action> {
   private _gamepadManager = GamepadManager.shared;
 
   private _actionMappings = new Map<Action, Input[]>();
+  private _aliasMappings = new Map<Action, Action[]>();
   private _keyboardEventMappings = new Map<KeyboardEventType, Action[]>();
   private _mouseEventMappings = new Map<MouseEventType, Action[]>();
   private _pointerEventMappings = new Map<PointerEventType, Action[]>();
@@ -117,7 +119,7 @@ export class InputManager extends EventEmitter<Action> {
           (!input.key || input.key == ev.key) &&
           (!input.predicate || input.predicate(ev))
         ) {
-          this.emit(action);
+          this.emitAction(action);
           ev.preventDefault();
         }
       }
@@ -137,7 +139,8 @@ export class InputManager extends EventEmitter<Action> {
         .map((i) => i as MouseInput);
       for (let input of inputs) {
         if (input.predicate(ev)) {
-          this.emit(action);
+          this.emitAction(action);
+          ev.preventDefault();
         }
       }
     }
@@ -156,7 +159,8 @@ export class InputManager extends EventEmitter<Action> {
         .map((i) => i as PointerInput);
       for (let input of inputs) {
         if (input.predicate(ev)) {
-          this.emit(action);
+          this.emitAction(action);
+          ev.preventDefault();
         }
       }
     }
@@ -173,13 +177,24 @@ export class InputManager extends EventEmitter<Action> {
         .map((i) => i as GamepadInput);
       for (let input of inputs) {
         if (input.predicate(ev)) {
-          this.emit(action);
+          this.emitAction(action);
         }
       }
     }
   }
 
+  private emitAction(action: string) {
+    let actions = [action];
+    actions.push(...(this._aliasMappings.get(action) ?? []));
+    for (let a of actions) {
+      this.emit(a);
+    }
+  }
+
   public addEvent(event: GameInputEvent) {
+    if (event.aliases) {
+      this._aliasMappings.set(event.action, event.aliases);
+    }
     for (let input of event.inputs) {
       this.subscribe(event.action, input);
     }

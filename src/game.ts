@@ -1,3 +1,4 @@
+import { PixiTiledMapOrthogonal } from './middleware/tiled/pixi-tiled-map-orthogonal';
 import { Application, IApplicationOptions, UPDATE_PRIORITY } from 'pixi.js';
 import { getCreditsScene } from './scenes/credits-scene';
 import { getMainMenuScene } from './scenes/main-menu-scene';
@@ -13,6 +14,7 @@ import {
   GamepadManagerEvent,
   GamepadManagerEventType,
 } from './managers/gamepad-manager';
+import { Palette } from './palette';
 
 export class Game extends Application {
   private static _game?: Game;
@@ -34,7 +36,10 @@ export class Game extends Application {
   private loadAssets(): Promise<void> {
     return new Promise((resolve) => {
       this.loader
-        .add('Press Start 2P', '/assets/fonts/pressstart.fnt')
+        .add('/art/tilesheet.png')
+        .add('titlescreen', '/maps/title-screen.tiled.json')
+        .use(PixiTiledMapOrthogonal.middleware)
+        .add('Legend Q', '/assets/fonts/legendq.fnt')
         .load(() => resolve());
     });
   }
@@ -44,7 +49,7 @@ export class Game extends Application {
     Game._game = game;
     await game.loadAssets();
     game.sceneManager.game = game;
-    game.mainMenu = getMainMenuScene('LOSPEC JAM', [
+    game.mainMenu = getMainMenuScene('COME ON AND SLAM', [
       {
         label: 'START',
         activate: () => (SceneManager.shared.currentScene = getMainScene()),
@@ -76,7 +81,17 @@ export class Game extends Application {
           ])),
       },
     ]);
-    game.sceneManager.currentScene = game.mainMenu;
+
+    let map = new PixiTiledMapOrthogonal('titlescreen');
+    let scene: Scene = {
+      id: 'titlescreen',
+      stage: map,
+      backgroundColor: Palette.background,
+      canPause: false,
+      selectableItems: [],
+    };
+
+    game.sceneManager.currentScene = scene;
     game.stage.addChild(game.sceneManager.stage);
     game.setupController();
     game.ticker.add(() => {
@@ -90,7 +105,7 @@ export class Game extends Application {
   private setupController() {
     this.inputManager.addEvents(
       {
-        action: 'up',
+        action: 'up-pressed',
         inputs: [
           {
             type: InputDevice.Keyboard,
@@ -108,7 +123,7 @@ export class Game extends Application {
         ],
       },
       {
-        action: 'down',
+        action: 'down-pressed',
         inputs: [
           {
             type: InputDevice.Keyboard,
@@ -126,7 +141,7 @@ export class Game extends Application {
         ],
       },
       {
-        action: 'left',
+        action: 'left-pressed',
         inputs: [
           {
             type: InputDevice.Keyboard,
@@ -144,7 +159,7 @@ export class Game extends Application {
         ],
       },
       {
-        action: 'right',
+        action: 'right-pressed',
         inputs: [
           {
             type: InputDevice.Keyboard,
@@ -162,7 +177,7 @@ export class Game extends Application {
         ],
       },
       {
-        action: 'a',
+        action: 'a-pressed',
         inputs: [
           {
             type: InputDevice.Keyboard,
@@ -180,7 +195,7 @@ export class Game extends Application {
         ],
       },
       {
-        action: 'b',
+        action: 'b-pressed',
         inputs: [
           {
             type: InputDevice.Keyboard,
@@ -190,6 +205,117 @@ export class Game extends Application {
           {
             type: InputDevice.Gamepad,
             eventType: GamepadManagerEventType.GamepadButtonDown,
+            predicate: (ev: GamepadManagerEvent) => {
+              let e = ev as GamepadManagerButtonEvent;
+              return e?.button === 1;
+            },
+          },
+        ],
+      },
+      {
+        action: 'up-released',
+        aliases: ['previous-item'],
+        inputs: [
+          {
+            type: InputDevice.Keyboard,
+            eventType: 'keyup',
+            key: 'ArrowUp',
+          },
+          {
+            type: InputDevice.Gamepad,
+            eventType: GamepadManagerEventType.GamepadButtonUp,
+            predicate: (ev: GamepadManagerEvent) => {
+              let e = ev as GamepadManagerButtonEvent;
+              return e?.button === 12;
+            },
+          },
+        ],
+      },
+      {
+        action: 'down-released',
+        aliases: ['next-item'],
+        inputs: [
+          {
+            type: InputDevice.Keyboard,
+            eventType: 'keyup',
+            key: 'ArrowDown',
+          },
+          {
+            type: InputDevice.Gamepad,
+            eventType: GamepadManagerEventType.GamepadButtonUp,
+            predicate: (ev: GamepadManagerEvent) => {
+              let e = ev as GamepadManagerButtonEvent;
+              return e?.button === 13;
+            },
+          },
+        ],
+      },
+      {
+        action: 'left-released',
+        inputs: [
+          {
+            type: InputDevice.Keyboard,
+            eventType: 'keyup',
+            key: 'ArrowLeft',
+          },
+          {
+            type: InputDevice.Gamepad,
+            eventType: GamepadManagerEventType.GamepadButtonUp,
+            predicate: (ev: GamepadManagerEvent) => {
+              let e = ev as GamepadManagerButtonEvent;
+              return e?.button === 14;
+            },
+          },
+        ],
+      },
+      {
+        action: 'right-released',
+        inputs: [
+          {
+            type: InputDevice.Keyboard,
+            eventType: 'keyup',
+            key: 'ArrowRight',
+          },
+          {
+            type: InputDevice.Gamepad,
+            eventType: GamepadManagerEventType.GamepadButtonUp,
+            predicate: (ev: GamepadManagerEvent) => {
+              let e = ev as GamepadManagerButtonEvent;
+              return e?.button === 15;
+            },
+          },
+        ],
+      },
+      {
+        action: 'a-released',
+        inputs: [
+          {
+            type: InputDevice.Keyboard,
+            eventType: 'keydown',
+            key: 'z',
+          },
+          {
+            type: InputDevice.Gamepad,
+            eventType: GamepadManagerEventType.GamepadButtonUp,
+            predicate: (ev: GamepadManagerEvent) => {
+              let e = ev as GamepadManagerButtonEvent;
+              return e?.button === 0;
+            },
+          },
+        ],
+      },
+      {
+        action: 'b-released',
+        aliases: ['back'],
+        inputs: [
+          {
+            type: InputDevice.Keyboard,
+            eventType: 'keydown',
+            key: 'x',
+          },
+          {
+            type: InputDevice.Gamepad,
+            eventType: GamepadManagerEventType.GamepadButtonUp,
             predicate: (ev: GamepadManagerEvent) => {
               let e = ev as GamepadManagerButtonEvent;
               return e?.button === 1;
@@ -211,60 +337,6 @@ export class Game extends Application {
             predicate: (ev: GamepadManagerEvent) => {
               let e = ev as GamepadManagerButtonEvent;
               return e?.button === 9;
-            },
-          },
-        ],
-      },
-      {
-        action: 'previous-item',
-        inputs: [
-          {
-            type: InputDevice.Keyboard,
-            eventType: 'keyup',
-            key: 'ArrowUp',
-          },
-          {
-            type: InputDevice.Gamepad,
-            eventType: GamepadManagerEventType.GamepadButtonUp,
-            predicate: (ev: GamepadManagerEvent) => {
-              let e = ev as GamepadManagerButtonEvent;
-              return e?.button === 13;
-            },
-          },
-        ],
-      },
-      {
-        action: 'next-item',
-        inputs: [
-          {
-            type: InputDevice.Keyboard,
-            eventType: 'keyup',
-            key: 'ArrowDown',
-          },
-          {
-            type: InputDevice.Gamepad,
-            eventType: GamepadManagerEventType.GamepadButtonUp,
-            predicate: (ev: GamepadManagerEvent) => {
-              let e = ev as GamepadManagerButtonEvent;
-              return e?.button === 12;
-            },
-          },
-        ],
-      },
-      {
-        action: 'back',
-        inputs: [
-          {
-            type: InputDevice.Keyboard,
-            eventType: 'keyup',
-            key: 'Backspace',
-          },
-          {
-            type: InputDevice.Gamepad,
-            eventType: GamepadManagerEventType.GamepadButtonUp,
-            predicate: (ev: GamepadManagerEvent) => {
-              let e = ev as GamepadManagerButtonEvent;
-              return e?.button === 1;
             },
           },
         ],

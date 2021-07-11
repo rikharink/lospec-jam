@@ -1,0 +1,57 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "": {
+            "scaleInDock": 1
+        },
+        "legendq.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "title-screen.tmx": {
+            "scale": 3,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 229.99999999999997,
+                "y": -3.666666666666657
+            }
+        },
+        "title-screen.tmx#legendq": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        }
+    },
+    "last.exportedFilePath": "C:/repos/games/lospec-jam/public/maps",
+    "last.externalTilesetPath": "C:/repos/games/lospec-jam/art",
+    "last.imagePath": "C:/repos/games/lospec-jam/art",
+    "last.worldFilePath": "C:/repos/games/lospec-jam/levels",
+    "loadedWorlds": [
+        "C:/repos/games/lospec-jam/levels/legendq.world"
+    ],
+    "map.height": 18,
+    "map.lastUsedExportFilter": "JSON map files (*.json)",
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 15,
+    "map.tileWidth": 15,
+    "map.width": 32,
+    "openFiles": [
+    ],
+    "project": "legendq.tiled-project",
+    "recentFiles": [
+        "title-screen.tmx",
+        "legendq.tsx"
+    ],
+    "tileset.embedInMap": true,
+    "tileset.lastUsedFilter": "All Files (*)",
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 15,
+        "width": 15
+    }
+}
