@@ -26,5 +26,7 @@ export default {
     polyfillNode: true,
   },
   devOptions: {},
-  buildOptions: {},
+  buildOptions: {
+    baseUrl: '/rikharink',
+  },
 };
