@@ -31,8 +31,7 @@ export class PixiTiledTileLayer extends Container {
         if (this.tileExists(i)) {
           const tileData = { i, x, y };
           const tile = this.createTile(tilesets, tileData);
-
-          this.tiles.push(tile);
+          this.tiles[i] = tile;
           this.addTile(tile);
         }
       }

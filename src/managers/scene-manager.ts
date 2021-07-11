@@ -89,7 +89,7 @@ export class SceneManager {
 
   private mainMenu() {
     this.resume();
-    this.currentScene = this.game.mainMenu;
+    this.currentScene = this.game.titlescreen;
   }
 
   public resume() {
@@ -119,7 +119,6 @@ export class SceneManager {
   private setScene(scene: Scene) {
     if (this._sceneStack[0]) {
       this._sceneStack[0].ticker?.stop();
-      console.log('set scene selection', SelectionManager.shared.selectedItem);
       this._sceneStack[0].selectedItem = SelectionManager.shared.selectedItem;
     }
     this._sceneStack.unshift(scene);

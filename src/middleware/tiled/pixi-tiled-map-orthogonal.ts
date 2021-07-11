@@ -60,8 +60,12 @@ export class PixiTiledMapOrthogonal extends Container {
   }
 
   setTileLayer(layerData: PixiTiledTileLayer) {
-    if (layerData.name === 'Collisions') {
-      this.collisionLayer = new PixiTiledCollisionLayer(layerData);
+    if (layerData.name === 'collisions') {
+      this.collisionLayer = new PixiTiledCollisionLayer(
+        layerData,
+        this.map.tilewidth,
+        this.map.tileheight,
+      );
       return;
     }
 

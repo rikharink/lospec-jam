@@ -1,6 +1,6 @@
 import { StackLayout, StackLayoutOptions } from './../components/stack-layout';
 import { ScrollView } from './../components/scroll-view';
-import { Container, Ticker } from 'pixi.js';
+import { Container, Ticker, UPDATE_PRIORITY } from 'pixi.js';
 import { Label } from '../components/label';
 import { Palette } from '../palette';
 import type { Scene } from './scene';
@@ -48,9 +48,7 @@ class CreditComponent extends StackLayout {
 
 function getCredit(c: Credit): CreditComponent {
   let title = new Label(c.title);
-  title.anchor.set(0.5, 0);
   let description = new Label(c.description, { align: 'center' });
-  description.anchor.set(0.5, 0);
   const layout = new CreditComponent(title, description, c.link, {
     spacing: 4,
   });
@@ -64,7 +62,6 @@ export function getCreditsScene(credits: Credit[]): Scene {
   const stage = new Container();
   stage.name = id;
   const text = new Label('CREDITS');
-  text.anchor.set(0.5, 0);
   text.position.set(width / 2, 20);
   stage.addChild(text);
 
@@ -87,6 +84,7 @@ export function getCreditsScene(credits: Credit[]): Scene {
             scroll.scroll(height + bounds.height);
           }
         }).bind(this),
+        UPDATE_PRIORITY.LOW,
       )).bind(this),
     1000,
   );

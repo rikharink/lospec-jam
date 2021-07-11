@@ -1,8 +1,11 @@
 import { PixiTiledMapOrthogonal } from './middleware/tiled/pixi-tiled-map-orthogonal';
-import { Application, IApplicationOptions, UPDATE_PRIORITY } from 'pixi.js';
-import { getCreditsScene } from './scenes/credits-scene';
-import { getMainMenuScene } from './scenes/main-menu-scene';
-import { getMainScene } from './scenes/main-scene';
+import {
+  Application,
+  IApplicationOptions,
+  Spritesheet,
+  UPDATE_PRIORITY,
+} from 'pixi.js';
+import { getTitleScreen } from './scenes/title-screen';
 import { Scene } from './scenes/scene';
 import { SceneManager } from './managers/scene-manager';
 import { AudioManager } from './managers/audio-manager';
@@ -14,13 +17,18 @@ import {
   GamepadManagerEvent,
   GamepadManagerEventType,
 } from './managers/gamepad-manager';
-import { Palette } from './palette';
+
+interface GameOptions extends IApplicationOptions {
+  scaling: number;
+}
 
 export class Game extends Application {
   private static _game?: Game;
-  public mainMenu: Scene;
+  public titlescreen: Scene;
+  public spritesheet: Spritesheet;
+  public static spritesheetFile = '/art/legendq.json';
 
-  private constructor(options?: IApplicationOptions) {
+  private constructor(options?: GameOptions) {
     super(options);
   }
 
@@ -30,13 +38,17 @@ export class Game extends Application {
   }
 
   public get size(): Size {
-    return [this.renderer.width, this.renderer.height];
+    return [
+      this.renderer.width / this.renderer.resolution,
+      this.renderer.height / this.renderer.resolution,
+    ];
   }
 
   private loadAssets(): Promise<void> {
     return new Promise((resolve) => {
       this.loader
         .add('/art/tilesheet.png')
+        .add(Game.spritesheetFile)
         .add('titlescreen', '/maps/title-screen.tiled.json')
         .use(PixiTiledMapOrthogonal.middleware)
         .add('Legend Q', '/assets/fonts/legendq.fnt')
@@ -44,54 +56,15 @@ export class Game extends Application {
     });
   }
 
-  public static async init(options?: IApplicationOptions): Promise<Game> {
+  public static async init(options?: GameOptions): Promise<Game> {
     let game = new Game(options);
+    
     Game._game = game;
     await game.loadAssets();
+    game.spritesheet = game.loader.resources[Game.spritesheetFile].spritesheet;
     game.sceneManager.game = game;
-    game.mainMenu = getMainMenuScene('COME ON AND SLAM', [
-      {
-        label: 'START',
-        activate: () => (SceneManager.shared.currentScene = getMainScene()),
-      },
-      {
-        label: 'CREDITS',
-        activate: () =>
-          (SceneManager.shared.currentScene = getCreditsScene([
-            {
-              title: 'CODE ART MUSIC',
-              description: 'rik harink',
-              link: 'https://github.com/rikharink',
-            },
-            {
-              title: 'WEBGL RENDERER',
-              description: 'pixi.js',
-              link: 'https://www.pixijs.com/',
-            },
-            {
-              title: 'MUSIC LIBRARY',
-              description: 'tone.js',
-              link: 'https://tonejs.github.io/',
-            },
-            {
-              title: 'FONT',
-              description: 'press start 2p',
-              link: 'https://fonts.google.com/specimen/Press+Start+2P',
-            },
-          ])),
-      },
-    ]);
-
-    let map = new PixiTiledMapOrthogonal('titlescreen');
-    let scene: Scene = {
-      id: 'titlescreen',
-      stage: map,
-      backgroundColor: Palette.background,
-      canPause: false,
-      selectableItems: [],
-    };
-
-    game.sceneManager.currentScene = scene;
+    game.titlescreen = getTitleScreen();
+    game.sceneManager.currentScene = game.titlescreen;
     game.stage.addChild(game.sceneManager.stage);
     game.setupController();
     game.ticker.add(() => {

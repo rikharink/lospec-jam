@@ -8,19 +8,22 @@ export class PixiTiledCollisionLayer {
   private tilesMap: PixiTiledTile[];
   private collisionsMap: boolean[];
 
-  constructor(layer: PixiTiledTileLayer) {
+  constructor(
+    layer: PixiTiledTileLayer,
+    tileWidth: number,
+    tileHeight: number,
+  ) {
     this.tilesMap = layer.tiles;
     this.constructCollisionsMap();
-
+    console.debug(this.collisionsMap);
     this.width = layer.width;
     this.height = layer.height;
 
-    //TODO: where do i find this?
-    this.tileWidth = 15;
-    this.tileHeight = 15;
+    this.tileWidth = tileWidth;
+    this.tileHeight = tileHeight;
   }
 
-  isWalkable(x: number, y: number) {
+  hasCollision(x: number, y: number) {
     const posx = Math.floor(x / this.tileWidth);
     const posy = Math.floor(y / this.tileHeight);
     return this.collisionsMap[posx + posy * this.width];
@@ -30,7 +33,7 @@ export class PixiTiledCollisionLayer {
     this.collisionsMap = new Array(this.tilesMap.length);
     for (let i = 0; i < this.tilesMap.length; ++i) {
       const tile = this.tilesMap[i];
-      this.collisionsMap[i] = tile === undefined;
+      this.collisionsMap[i] = tile !== undefined;
     }
   }
 

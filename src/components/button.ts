@@ -83,7 +83,6 @@ export class Button extends ContentView {
     }
 
     const text = new Label(this._options.text, this._options.textOptions);
-    text.anchor.set(0.5, 0.35);
     text.position.set(this._options.width / 2, this._options.height / 2);
     graphics.addChild(text);
     this.content = graphics;

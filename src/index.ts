@@ -5,9 +5,10 @@ import { Palette } from './palette';
 import { SCALE_MODES, settings } from 'pixi.js';
 
 settings.SCALE_MODE = SCALE_MODES.NEAREST;
-// settings.ROUND_PIXELS = true;
+settings.ROUND_PIXELS = true;
 
 Game.init({
+  scaling: 5,
   width: 240,
   height: 135,
   sharedTicker: true,

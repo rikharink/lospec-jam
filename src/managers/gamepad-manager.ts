@@ -1,4 +1,4 @@
-import { Ticker } from 'pixi.js';
+import { Ticker, UPDATE_PRIORITY } from 'pixi.js';
 import { EventEmitter } from '../event-emitter';
 import { Disposable } from '../interfaces/disposable';
 import { GamepadEffect, RawGamepad } from '../interfaces/raw-gamepad';
@@ -70,7 +70,7 @@ export class GamepadManager
   public start() {
     if (this._started) return;
     this._ticker.start();
-    this._ticker.add(this.updateLoop.bind(this));
+    this._ticker.add(this.updateLoop.bind(this), UPDATE_PRIORITY.INTERACTION);
     window.addEventListener('gamepadconnected', this.connect.bind(this));
     window.addEventListener('gamepaddisconnected', this.disconnect.bind(this));
     for (let gp of navigator.getGamepads()) {
