@@ -27,6 +27,6 @@ export default {
   },
   devOptions: {},
   buildOptions: {
-    baseUrl: '/rikharink',
+    baseUrl: '/lospec-jam',
   },
 };

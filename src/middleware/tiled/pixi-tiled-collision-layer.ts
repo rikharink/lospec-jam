@@ -15,7 +15,6 @@ export class PixiTiledCollisionLayer {
   ) {
     this.tilesMap = layer.tiles;
     this.constructCollisionsMap();
-    console.debug(this.collisionsMap);
     this.width = layer.width;
     this.height = layer.height;
 

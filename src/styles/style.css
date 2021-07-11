@@ -17,3 +17,8 @@ canvas {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
+
+#debug {
+  width: calc(240px * 5) !important;
+  height: calc(135px * 5) !important;
+}

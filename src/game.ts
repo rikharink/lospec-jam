@@ -26,7 +26,7 @@ export class Game extends Application {
   private static _game?: Game;
   public titlescreen: Scene;
   public spritesheet: Spritesheet;
-  public static spritesheetFile = '/art/legendq.json';
+  public static spritesheetFile = 'art/legendq.json';
 
   private constructor(options?: GameOptions) {
     super(options);
@@ -47,18 +47,17 @@ export class Game extends Application {
   private loadAssets(): Promise<void> {
     return new Promise((resolve) => {
       this.loader
-        .add('/art/tilesheet.png')
+        .add('art/tilesheet.png')
         .add(Game.spritesheetFile)
-        .add('titlescreen', '/maps/title-screen.tiled.json')
+        .add('titlescreen', 'maps/title-screen.tiled.json')
         .use(PixiTiledMapOrthogonal.middleware)
-        .add('Legend Q', '/assets/fonts/legendq.fnt')
+        .add('Legend Q', 'assets/fonts/legendq.fnt')
         .load(() => resolve());
     });
   }
 
   public static async init(options?: GameOptions): Promise<Game> {
     let game = new Game(options);
-    
     Game._game = game;
     await game.loadAssets();
     game.spritesheet = game.loader.resources[Game.spritesheetFile].spritesheet;
@@ -318,6 +317,7 @@ export class Game extends Application {
   }
 
   public addToPage() {
+    super.view.id = 'debug';
     document.body.appendChild(super.view);
   }
 
