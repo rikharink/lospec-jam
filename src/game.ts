@@ -55,10 +55,13 @@ export class Game extends Application {
     });
   }
 
+  private async setupAudio(): Promise<void> {}
+
   public static async init(options?: GameOptions): Promise<Game> {
     let game = new Game(options);
     Game._game = game;
     await game.loadAssets();
+    await game.setupAudio();
     game.spritesheet = game.loader.resources[Game.spritesheetFile].spritesheet;
     game.sceneManager.game = game;
     game.titlescreen = getTitleScreen();

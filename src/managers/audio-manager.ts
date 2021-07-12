@@ -1,5 +1,6 @@
-import { Transport, start, Gain } from 'tone';
+import { Transport, start, Gain, Context, Oscillator } from 'tone';
 import type { Time } from 'tone/build/esm/core/type/Units';
+import { TiaNode, TIA_PAL_CLOCK } from '../sound/tia';
 import type { Track } from '../sound/track';
 
 export class AudioManager {
@@ -16,14 +17,22 @@ export class AudioManager {
   private _previousGainMain?: number;
   private _previousGainMusic?: number;
   private _previousGainFx?: number;
+  private _context: Context;
+
+
 
   constructor() {
+    this._context = new Context();
     this._main = new Gain();
     this._main.toDestination();
     this._music = new Gain();
     this._music.connect(this._main);
     this._fx = new Gain();
     this._fx.connect(this._main);
+  }
+
+  public get context(): Context {
+    return this._context;
   }
 
   public toggleMain(state: boolean) {
@@ -100,5 +109,9 @@ export class AudioManager {
     this._currentTrack?.stop();
     this._currentTrack = track;
     this._currentTrack?.play();
+  }
+
+  private setupTia() {
+
   }
 }
