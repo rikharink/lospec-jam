@@ -8,7 +8,6 @@ settings.SCALE_MODE = SCALE_MODES.NEAREST;
 settings.ROUND_PIXELS = true;
 
 Game.init({
-  scaling: 5,
   width: 240,
   height: 135,
   sharedTicker: true,
@@ -23,4 +22,4 @@ Game.init({
     //@ts-ignore
     window.game = game;
   });
-export {};
+export { };

@@ -19,7 +19,6 @@ import {
 } from './managers/gamepad-manager';
 
 interface GameOptions extends IApplicationOptions {
-  scaling: number;
 }
 
 export class Game extends Application {
@@ -318,7 +317,8 @@ export class Game extends Application {
 
   public addToPage() {
     super.view.id = 'debug';
-    document.body.appendChild(super.view);
+    const game = document.getElementById("game");
+    game.append(super.view);
   }
 
   public get sceneManager(): SceneManager {
