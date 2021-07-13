@@ -1,7 +1,9 @@
-import { PixiTiledMapOrthogonal } from './middleware/tiled/pixi-tiled-map-orthogonal';
+import { PixiTiledMapOrthogonal } from './loaders/tiled/pixi-tiled-map-orthogonal';
 import {
   Application,
   IApplicationOptions,
+  Loader,
+  Resource,
   Spritesheet,
   UPDATE_PRIORITY,
 } from 'pixi.js';
@@ -17,6 +19,7 @@ import {
   GamepadManagerEvent,
   GamepadManagerEventType,
 } from './managers/gamepad-manager';
+import { TiaSound } from './loaders/tiatracker/tia-sound';
 
 interface GameOptions extends IApplicationOptions {
 }
@@ -43,19 +46,26 @@ export class Game extends Application {
     ];
   }
 
+  public progress(loader: Loader, _resource: Resource): void {
+    console.info(`LOADING PROGRESS ${loader.progress}%`);
+  }
+
   private loadAssets(): Promise<void> {
+    this.loader.onProgress.add(this.progress.bind(this));
     return new Promise((resolve) => {
       this.loader
+        .use(PixiTiledMapOrthogonal.middleware)
+        .use(TiaSound.middleware)
         .add('art/tilesheet.png')
         .add(Game.spritesheetFile)
         .add('titlescreen', 'maps/title-screen.tiled.json')
-        .use(PixiTiledMapOrthogonal.middleware)
         .add('Legend Q', 'assets/fonts/legendq.fnt')
+        .add('audio/glafouk - Miniblast.ttt')
         .load(() => resolve());
     });
   }
 
-  private async setupAudio(): Promise<void> {}
+  private async setupAudio(): Promise<void> { }
 
   public static async init(options?: GameOptions): Promise<Game> {
     let game = new Game(options);

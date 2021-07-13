@@ -1,6 +1,6 @@
 import { Transport, start, Gain, Context, Oscillator } from 'tone';
 import type { Time } from 'tone/build/esm/core/type/Units';
-import { TiaNode, TIA_PAL_CLOCK } from '../sound/tia';
+import { TiaOsc, TIA_PAL_CLOCK } from '../sound/tia';
 import type { Track } from '../sound/track';
 
 export class AudioManager {

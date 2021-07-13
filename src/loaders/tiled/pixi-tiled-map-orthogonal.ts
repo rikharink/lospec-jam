@@ -21,7 +21,7 @@ export class PixiTiledMapOrthogonal extends Container {
     if (!resource.url.endsWith('tiled.json')) return next();
     const map: TiledMapOrthogonal = JSON.parse(resource.xhr.responseText);
     resource.data = map;
-    next();
+    return next();
   }
 
   constructor(resourceId: string | number) {

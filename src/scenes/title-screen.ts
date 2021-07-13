@@ -1,7 +1,7 @@
 import { Label } from './../components/label';
 import type { Scene } from './scene';
 import { Palette } from '../palette';
-import { PixiTiledMapOrthogonal } from '../middleware/tiled/pixi-tiled-map-orthogonal';
+import { PixiTiledMapOrthogonal } from '../loaders/tiled/pixi-tiled-map-orthogonal';
 import { AnimatedSprite, Container, Ticker, UPDATE_PRIORITY } from 'pixi.js';
 import { Game } from '../game';
 import { getMainScene } from './main-scene';
