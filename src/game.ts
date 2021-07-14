@@ -65,14 +65,7 @@ export class Game extends Application {
     });
   }
 
-  private async setupAudio(): Promise<void> {
-    let audioContext = new AudioContext();
-    await audioContext.audioWorklet.addModule('audio/tia-osc.worklet.js');
-    let tiaNode = new AudioWorkletNode(audioContext, 'tia-osc');
-    tiaNode.connect(audioContext.destination);
-    //@ts-ignore
-    window.tia = tiaNode;
-  }
+  private async setupAudio(): Promise<void> {}
 
   public static async init(options?: GameOptions): Promise<Game> {
     let game = new Game(options);
