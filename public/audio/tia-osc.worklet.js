@@ -76,8 +76,11 @@ class TiaOsc extends AudioWorkletProcessor {
         minValue: 0,
         maxValue: 15,
       },
+      //IDEAL PAL: 31200
+      //IDEAL NTSC: 31440
+      //Adam Wozniak Measured NTSC 31456
       {
-        name: 'inputfrequency',
+        name: 'tiasamplerate',
         defaultValue: 31456,
         automationRate: 'k-rate',
       },
@@ -113,7 +116,7 @@ class TiaOsc extends AudioWorkletProcessor {
   process(_inputs, outputs, parameters) {
     let output = outputs[0][0];
     let size = output.length;
-    let inputfrequency = parameters.inputfrequency[0];
+    let tiasamplerate = parameters.tiasamplerate[0];
     let buf = 0;
     let i = 0;
 
@@ -144,13 +147,13 @@ class TiaOsc extends AudioWorkletProcessor {
           this.state.last = !(this.state.offset & 0x01);
         }
       }
+
       this.state.rate += sampleRate;
 
-      while (this.state.rate >= inputfrequency && size) {
+      // RESAMPLE
+      while (this.state.rate >= tiasamplerate && size) {
         output[buf] += this.state.last ? v << 3 : 0;
-
-        this.state.rate -= inputfrequency;
-
+        this.state.rate -= tiasamplerate;
         buf += 1;
         size -= 1;
       }
