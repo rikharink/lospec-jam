@@ -87,13 +87,13 @@ export const TIA_PAL_CLOCK: Hertz = 312 * 228 * 50;
 export const TIA_NTSC_CLOCK: Hertz = 262 * 228 * 60;
 const BUFFER_BUFFER = new Map<number, AudioBuffer>();
 
-export class TiaOsc extends BufferSource {
+export class TiaNode extends BufferSource {
     constructor({
         tone,
         frequency,
         clockspeed = TIA_PAL_CLOCK
     }: Partial<TiaOptions>) {
-        let buffer = TiaOsc.getBuffer(tone, frequency, clockspeed);
+        let buffer = TiaNode.getBuffer(tone, frequency, clockspeed);
         super(buffer);
         super.loop = true;
     }
@@ -108,7 +108,7 @@ export class TiaOsc extends BufferSource {
     }
 
     static getBuffer(tone: number, frequency: number, clockspeed: number): AudioBuffer {
-        const key = TiaOsc.getKey(tone, frequency);
+        const key = TiaNode.getKey(tone, frequency);
         let buffered = BUFFER_BUFFER.get(key);
         if (buffered) {
             return buffered;

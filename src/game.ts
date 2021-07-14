@@ -1,3 +1,4 @@
+import { TiaNode } from './sound/tia';
 import { PixiTiledMapOrthogonal } from './loaders/tiled/pixi-tiled-map-orthogonal';
 import {
   Application,
@@ -21,8 +22,7 @@ import {
 } from './managers/gamepad-manager';
 import { TiaSound } from './loaders/tiatracker/tia-sound';
 
-interface GameOptions extends IApplicationOptions {
-}
+interface GameOptions extends IApplicationOptions {}
 
 export class Game extends Application {
   private static _game?: Game;
@@ -65,7 +65,17 @@ export class Game extends Application {
     });
   }
 
-  private async setupAudio(): Promise<void> { }
+  private async setupAudio(): Promise<void> {
+    let audioContext = new AudioContext();
+    await audioContext.audioWorklet.addModule('audio/tia-osc.worklet.js');
+    let tiaNode = new AudioWorkletNode(audioContext, 'tia-osc');
+    //@ts-ignore
+    tiaNode.frequency.value = 32;
+
+    tiaNode.connect(audioContext.destination);
+    //@ts-ignore
+    window.tia = tiaNode;
+  }
 
   public static async init(options?: GameOptions): Promise<Game> {
     let game = new Game(options);
@@ -330,7 +340,7 @@ export class Game extends Application {
 
   public addToPage() {
     super.view.id = 'debug';
-    const game = document.getElementById("game");
+    const game = document.getElementById('game');
     game.append(super.view);
   }
 

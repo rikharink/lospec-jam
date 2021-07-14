@@ -2,5 +2,5 @@
 
 ## TIA SOUND
 
-- <https://github.com/6502ts/6502.ts/blob/master/src/machine/stella/tia/ToneGenerator.ts>
-- <http://www.qotile.net/files/2600_music_guide.txt>
+- <https://www.biglist.com/lists/stella/archives/200311/msg00156.html>
+- <http://www.qotile.net/files/2600_music_guide.txt> | <http://7800.8bitdev.org/index.php/Atari_2600_VCS_Sound_Frequency_and_Waveform_Guide>
