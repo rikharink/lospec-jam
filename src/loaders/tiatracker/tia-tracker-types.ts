@@ -36,17 +36,20 @@ export interface INote {
 
 export interface IPattern {
   name: string;
+  evenspeed?: number;
+  oddspeed?: number;
   notes: INote[];
 }
 
 export interface ISong {
   channels: IChannel[];
-  evenspeed: number;
   instruments: IMelodicInstrument[];
   metaAuthor: string;
   metaComment: string;
   metaName: string;
+  globalspeed?: boolean;
   oddspeed: number;
+  evenspeed: number;
   patterns: IPattern[];
   percussion: IPercussionInstrument[];
   pitchGuideBaseFrequency: number;
