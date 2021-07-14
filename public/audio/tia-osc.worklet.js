@@ -1,3 +1,13 @@
+// ADAPTED FROM https://www.biglist.com/lists/stella/archives/200311/msg00156.html
+// // sound.c
+// version 0.2
+//
+// Copyright (c) 2003 Adam Wozniak (adam@xxxxxxxxxxxxxxxx)
+// All Rights Reserved
+//
+// Permission granted to freely copy and use for any purpose, provided
+// this copyright header remains intact.
+
 const poly0 = [1, -1];
 const poly1 = [1, 1, -1];
 const poly2 = [16, 15, -1];
@@ -45,31 +55,31 @@ const polys = [
   poly68,
 ];
 
-const TIA_PAL_CLOCK = 312 * 228 * 50;
-const TIA_NTSC_CLOCK = 262 * 228 * 60;
-const VOLUME_INCREMENT = 0.0666666666667;
-const TIA_SAMPLE_RATE = TIA_PAL_CLOCK / 114;
-
 class TiaOsc extends AudioWorkletProcessor {
   static get parameterDescriptors() {
     return [
       {
-        name: 'volume',
+        name: 'f',
+        defaultValue: 31,
+        minValue: 0,
+        maxValue: 31,
+      },
+      {
+        name: 'v',
         defaultValue: 15,
         minValue: 0,
         maxValue: 15,
       },
       {
-        name: 'frequency',
-        defaultValue: 16,
-        minValue: 1,
-        maxValue: 32,
-      },
-      {
-        name: 'distortion',
+        name: 'c',
         defaultValue: 4,
         minValue: 0,
         maxValue: 15,
+      },
+      {
+        name: 'inputfrequency',
+        defaultValue: 31456,
+        automationRate: 'k-rate',
       },
     ];
   }
@@ -78,79 +88,77 @@ class TiaOsc extends AudioWorkletProcessor {
     super();
   }
 
-  getWave(distortion, frequency) {
-    const poly = polys[distortion];
-    let length = 0;
-    for (let i = 0; i < poly.length; i++) {
-      length += poly[i];
-    }
+  previousF = -1;
+  previousV = -1;
+  previousC = -1;
 
-    length = length * divisors[distortion] * (frequency + 1);
-    let wave = new Float32Array(length);
-    let f = 0;
-    let count = 0;
-    let offset = 0;
-    let state = true;
-    for (let i = 0; i < length; i++) {
-      f++;
-      if (f === divisors[distortion] * (frequency + 1)) {
-        f = 0;
-        count++;
-        if (count === poly[offset]) {
-          offset++;
-          count = 0;
+  state = {
+    offset: 0,
+    count: 0,
+    last: 1,
+    f: 0,
+    rate: 0,
+  };
 
-          if (poly.length === offset) {
-            offset = 0;
-          }
-        }
-        state = !(offset & 0x01);
-      }
-      wave[i] = state ? 1 : -1;
-    }
-    return wave;
+  resetState() {
+    this.state = {
+      offset: 0,
+      count: 0,
+      last: 1,
+      f: 0,
+      rate: 0,
+    };
   }
-
-  fillBuffer(wave, length) {
-    let buffer = new Float32Array(length);
-    for (let i = 0; i < length; i++) {
-      buffer[i] = wave[i % wave.length];
-    }
-    return buffer;
-  }
-
-  upsample(source, destination, ratio, frames) {
-    for(let i = 0; i < frames; i++){
-      //todo LERP
-    }
-  }
-
-  previousFrequency = -1;
-  previousDistortion = -1;
-  wave = [];
-  waveIndex = 0;
-  atariBuffer = [];
 
   process(_inputs, outputs, parameters) {
     let output = outputs[0][0];
-    const nrSamples = output.length;
-    for (let i = 0; i < nrSamples; i++) {
-      let volume = parameters.volume[i] | parameters.volume[0];
-      let frequency = parameters.frequency[i] | parameters.frequency[0];
-      let distortion = parameters.distortion[i] | parameters.distortion[0];
+    let size = output.length;
+    let inputfrequency = parameters.inputfrequency[0];
+    let buf = 0;
+    let i = 0;
+
+    while (size) {
+      let f = parameters.f[i] | parameters.f[0];
+      let v = parameters.v[i] | parameters.v[0];
+      let c = parameters.c[i] | parameters.c[0];
+
       if (
-        frequency !== this.previousFrequency ||
-        distortion !== this.previousDistortion
+        f !== this.previousF ||
+        c !== this.previousC ||
+        v !== this.previousV
       ) {
-        this.wave = this.getWave(distortion, frequency);
-        this.atariBuffer = this.fillBuffer(this.wave, nrSamples);
+        this.resetState();
       }
-      //TODO: resample????
-      const d = sampleRate / TIA_SAMPLE_RATE;
-      output[i] = this.wave[this.waveIndex] * volume * VOLUME_INCREMENT;
-      this.waveIndex = (this.waveIndex + 1) % this.wave.length;
-      this.previousFrequency = frequency;
-      this.previousDistortion = distortion;
+
+      this.state.f++;
+      if (this.state.f === divisors[c] * (f + 1)) {
+        let poly = polys[c];
+        this.state.f = 0;
+        this.state.count++;
+        if (this.state.count === poly[this.state.offset]) {
+          this.state.offset++;
+          this.state.count = 0;
+          if (poly[this.state.offset] === -1) {
+            this.state.offset = 0;
+          }
+          this.state.last = !(this.state.offset & 0x01);
+        }
+      }
+      this.state.rate += sampleRate;
+
+      while (this.state.rate >= inputfrequency && size) {
+        output[buf] += this.state.last ? v << 3 : 0;
+
+        this.state.rate -= inputfrequency;
+
+        buf += 1;
+        size -= 1;
+      }
+
+      this.previousF = f;
+      this.previousV = v;
+      this.previousC = c;
+      i++;
     }
     return true;
   }

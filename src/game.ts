@@ -69,9 +69,6 @@ export class Game extends Application {
     let audioContext = new AudioContext();
     await audioContext.audioWorklet.addModule('audio/tia-osc.worklet.js');
     let tiaNode = new AudioWorkletNode(audioContext, 'tia-osc');
-    //@ts-ignore
-    tiaNode.frequency.value = 32;
-
     tiaNode.connect(audioContext.destination);
     //@ts-ignore
     window.tia = tiaNode;
