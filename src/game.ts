@@ -60,7 +60,7 @@ export class Game extends Application {
   }
 
   private async setupAudio(): Promise<void> {
-    let s = new TiaSound('audio/glafouk - Miniblast.ttt');
+    let s = new TiaSound();
     s.play();
   }
 
