@@ -1,3 +1,11 @@
+export enum NoteType {
+  Hold = 0,
+  Melodic = 1,
+  Pause = 2,
+  Percussion = 3,
+  Slide = 4,
+}
+
 export interface ISequence {
   gototarget: number;
   patternindex: number;
@@ -29,7 +37,7 @@ export interface IPercussionInstrument {
 }
 
 export interface INote {
-  type: number;
+  type: NoteType;
   number: number;
   value: number;
 }

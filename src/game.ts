@@ -55,12 +55,14 @@ export class Game extends Application {
         .add('titlescreen', 'maps/title-screen.tiled.json')
         .add('Legend Q', 'assets/fonts/legendq.fnt')
         .add('audio/glafouk - Miniblast.ttt')
+        .add('audio/fff.ttt')
         .load(() => resolve());
     });
   }
 
   private async setupAudio(): Promise<void> {
     let s = new TiaSound();
+    s.loadSong('audio/fff.ttt');
     s.play();
   }
 
