@@ -18,6 +18,8 @@ enum TiaSoundChannel {
   B = 1,
 }
 
+const READ_AHEAD_SIZE: Seconds = 1;
+
 export class TiaSound implements Track {
   private _song: ISong;
   private _isRunning: boolean = false;
@@ -69,8 +71,7 @@ export class TiaSound implements Track {
     if (this._stepLoopId) {
       Transport.clear(this._stepLoopId);
     }
-    this._stepLoopId = Transport.scheduleRepeat(this.step.bind(this), this.secondsPerFrame);
-    console.debug(this.secondsPerFrame);
+    this._stepLoopId = Transport.scheduleRepeat(this.schedule.bind(this), READ_AHEAD_SIZE);
   }
 
   public play(): void {
@@ -87,19 +88,20 @@ export class TiaSound implements Track {
     this._stepLoopId = undefined;
   }
 
-  //TODO: look-ahead scheduling of notes
-  //TODO: seems to not be in time?
-  lastTime = 0;
-  private step() {
+  private schedule() {
     let time = this.currentTime;
-    // console.debug('TIME DELTA: ', time - this.lastTime, this.lastTime, time, this._frame, this._row);
-    this.lastTime = time;
-    //START OF ROW
+    for (let i = 0; i < this.framerate * READ_AHEAD_SIZE; i++) {
+      this.step(time + i * this.secondsPerFrame);
+    }
+  }
+
+  private step(startTime: number) {
+    if (this.currentPatternA === undefined || this.currentPatternB === undefined) return;
     if (this._frame === 0) {
       let noteA = this.currentPatternA.notes[this._row];
       let noteB = this.currentPatternB.notes[this._row];
-      this.scheduleNote(noteA, TiaSoundChannel.A);
-      this.scheduleNote(noteB, TiaSoundChannel.B);
+      this.scheduleNote(noteA, TiaSoundChannel.A, startTime);
+      this.scheduleNote(noteB, TiaSoundChannel.B, startTime);
     }
     this._frame++;
 
@@ -126,6 +128,72 @@ export class TiaSound implements Track {
     return this._out.context.currentTime;
   }
 
+  private scheduleNote(note: INote, channel: TiaSoundChannel, time: number) {
+    const instrument = this.getInstrument(note);
+    switch (note.type) {
+      case NoteType.Hold:
+        return this.scheduleHold(channel, time);
+      case NoteType.Pause:
+        return this.schedulePause(channel, time);
+      case NoteType.Slide:
+        return this.scheduleSlide(note.value, channel, time);
+      case NoteType.Melodic:
+        return this.scheduleMelodic(<IMelodicInstrument>instrument, note.value, channel, time);
+      case NoteType.Percussion:
+        return this.schedulePercussion(<IPercussionInstrument>instrument, channel, time);
+    }
+  }
+
+  private scheduleHold(channel: TiaSoundChannel, time: number) {
+    let currentInstrument = channel == TiaSoundChannel.A ? this._instrumentA : this._instrumentB;
+    if (!currentInstrument) return;
+  }
+
+  private schedulePause(channel: TiaSoundChannel, time: number) {
+    let osc = this.getOscForChannel(channel);
+    let instrument = this.getInstrumentForChannel(channel);
+    if (!instrument) {
+      osc.v.setValueAtTime(0, time);
+    } else {
+      //TODO: Release envelope
+    }
+    channel === TiaSoundChannel.A
+      ? this._instrumentA = null
+      : this._instrumentB = null;
+  }
+
+  //TODO: don't think this works with look-ahead right now
+  //      maybe cache last played (melodic) frequency?
+  private scheduleSlide(slideAmount: number, channel: TiaSoundChannel, time: number) {
+    let osc = this.getOscForChannel(channel);
+    osc.f.setValueAtTime(osc.f.getValueAtTime(time) + slideAmount, time);
+  }
+
+  //TODO: play note
+  private scheduleMelodic(instrument: IMelodicInstrument, frequency: number, channel: TiaSoundChannel, time: number) {
+    channel === TiaSoundChannel.A
+      ? this._instrumentA = instrument
+      : this._instrumentB = instrument;
+  }
+
+  //TODO: Overlay percussion
+  private schedulePercussion(instrument: IPercussionInstrument, channel: TiaSoundChannel, time: number) {
+    channel === TiaSoundChannel.A
+      ? this._instrumentA = null
+      : this._instrumentB = null;
+    let osc = this.getOscForChannel(channel);
+    for (let i = 0; i < instrument.envelopeLength; i++) {
+      let f = instrument.frequencies[i];
+      let c = instrument.waveforms[i];
+      let v = instrument.volumes[i];
+      let t = time + i * this.secondsPerFrame;
+      osc.f.setValueAtTime(f, t);
+      osc.c.setValueAtTime(c, t);
+      osc.v.setValueAtTime(v, t);
+    }
+    osc.v.setValueAtTime(0, time + instrument.envelopeLength * this.secondsPerFrame);
+  }
+
   private getInstrument(note: INote): IMelodicInstrument | IPercussionInstrument | null {
     switch (note.type) {
       case NoteType.Melodic:
@@ -145,70 +213,6 @@ export class TiaSound implements Track {
 
   private getOscForChannel(channel: TiaSoundChannel): TiaOsc {
     return channel === TiaSoundChannel.A ? this._oscA : this._oscB;
-  }
-
-  private scheduleHold(channel: TiaSoundChannel) {
-    let currentInstrument = channel == TiaSoundChannel.A ? this._instrumentA : this._instrumentB;
-    if (!currentInstrument) return;
-  }
-
-  private schedulePause(channel: TiaSoundChannel) {
-    let osc = this.getOscForChannel(channel);
-    let instrument = this.getInstrumentForChannel(channel);
-    if (!instrument) {
-      osc.v.setValueAtTime(0, this.currentTime);
-    } else {
-      //TODO: Release
-    }
-    channel === TiaSoundChannel.A
-      ? this._instrumentA = null
-      : this._instrumentB = null;
-  }
-
-  private scheduleSlide(slideAmount: number, channel: TiaSoundChannel) {
-    let osc = this.getOscForChannel(channel);
-    osc.f.setValueAtTime(osc.f.getValueAtTime(this.currentTime) + slideAmount, this.currentTime);
-  }
-
-  private scheduleMelodic(instrument: IMelodicInstrument, frequency: number, channel: TiaSoundChannel) {
-    channel === TiaSoundChannel.A
-      ? this._instrumentA = instrument
-      : this._instrumentB = instrument;
-  }
-
-  //TODO: Overlay percussion
-  private schedulePercussion(instrument: IPercussionInstrument, channel: TiaSoundChannel) {
-    channel === TiaSoundChannel.A
-      ? this._instrumentA = null
-      : this._instrumentB = null;
-    let osc = this.getOscForChannel(channel);
-    let startTime = this.currentTime;
-    for (let i = 0; i < instrument.envelopeLength; i++) {
-      let f = instrument.frequencies[i];
-      let c = instrument.waveforms[i];
-      let v = instrument.volumes[i];
-      let time = startTime + i * this.secondsPerFrame;
-      osc.f.setValueAtTime(f, time);
-      osc.c.setValueAtTime(c, time);
-      osc.v.setValueAtTime(v, time);
-    }
-    osc.v.setValueAtTime(0, startTime + instrument.envelopeLength * this.secondsPerFrame);
-  }
-
-  private scheduleNote(note: INote, channel: TiaSoundChannel) {
-    const instrument = this.getInstrument(note);
-    switch (note.type) {
-      case NoteType.Hold:
-        return this.scheduleHold(channel);
-      case NoteType.Pause:
-        return this.schedulePause(channel);
-      case NoteType.Slide:
-        return this.scheduleSlide(note.value, channel);
-      case NoteType.Melodic:
-        return this.scheduleMelodic(<IMelodicInstrument>instrument, note.value, channel);
-      case NoteType.Percussion:
-        return this.schedulePercussion(<IPercussionInstrument>instrument, channel);
-    }
   }
 
   private get currentSpeed(): number {
@@ -232,10 +236,10 @@ export class TiaSound implements Track {
   }
 
   private get currentPatternA(): IPattern {
-    return this._song.patterns[this.currentSequenceA.patternindex];
+    return this._song.patterns[this.currentSequenceA?.patternindex];
   }
 
   private get currentPatternB(): IPattern {
-    return this._song.patterns[this.currentSequenceB.patternindex];
+    return this._song.patterns[this.currentSequenceB?.patternindex];
   }
 }

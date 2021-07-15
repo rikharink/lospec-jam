@@ -1,4 +1,4 @@
-import { connectSeries, Gain, InputNode, optionsFromArguments, Param, ToneAudioNode, ToneAudioNodeOptions } from "tone";
+import { connectSeries, Gain, InputNode, Mono, optionsFromArguments, Param, ToneAudioNode, ToneAudioNodeOptions } from "tone";
 import { readOnly, RecursivePartial } from "tone/build/esm/core/util/Interface";
 import { ToneAudioWorklet } from "tone/build/esm/core/worklet/ToneAudioWorklet";
 import { workletName } from "./tia-osc.worklet";
@@ -19,14 +19,16 @@ export class TiaOsc extends ToneAudioWorklet<TiaOscOptions> {
         throw new Error("Output only");
     }
     readonly output: Gain;
+    readonly mono: Mono;
 
     constructor(f: number, v: number, c: number);
     constructor(options?: RecursivePartial<TiaOscOptions>);
     constructor() {
         super(optionsFromArguments(TiaOsc.getDefaults(), arguments, ["f", "v", "c"]));
         let options = optionsFromArguments(TiaOsc.getDefaults(), arguments, ["f", "v", "c"]);
-
         this.output = new Gain({ context: this.context });
+        this.mono = new Mono({ context: this.context });
+
         this.f = new Param<"number">({
             context: this.context,
             value: options.f,
@@ -65,7 +67,7 @@ export class TiaOsc extends ToneAudioWorklet<TiaOscOptions> {
     }
 
     onReady(node: AudioWorkletNode) {
-        connectSeries(node, this.output);
+        connectSeries(node, this.mono, this.output);
         const f = node.parameters.get("f") as AudioParam;;
         this.f.setParam(f);
         const v = node.parameters.get("v") as AudioParam;;
