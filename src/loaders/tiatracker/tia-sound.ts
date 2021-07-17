@@ -11,6 +11,7 @@ import {
   ISequence,
   INote,
   NoteType,
+  WaveformType,
 } from './tia-tracker-types';
 
 enum TiaSoundChannel {
@@ -20,11 +21,18 @@ enum TiaSoundChannel {
 
 const READ_AHEAD_SIZE: Seconds = 1;
 
-//TODO: frequency envelope is modefier on base frequency instead of pure value
-//TODO: combined pure instrument support
-//TODO: What if envelope is longer than current frames per row
-//TODO: different sized pattern a & b && next pattern support
+interface ChannelState {
+  channel: TiaSoundChannel;
+  oscillator: TiaOsc;
+  currentInstrument?: IMelodicInstrument;
+  currentFrequency?: number;
+  currentSequence: number;
+  currentEnvelopeFrame: number;
+}
+
+//TODO: Melodic instrument envelopes sound all off... probably timing issues :-(
 //TODO: overlay percussion
+
 export class TiaSound implements Track {
   private _song: ISong;
   private _isRunning: boolean = false;
@@ -33,16 +41,25 @@ export class TiaSound implements Track {
   private _sequenceB = 0;
   private _row = 0;
   private _frame = 0;
-
   private _out: Gain = new Gain();
-  private _oscA = new TiaOsc({ f: 0, v: 0, c: 0 });
-  private _oscB = new TiaOsc({ f: 0, v: 0, c: 0 });
 
-  private _instrumentA?: IMelodicInstrument;
-  private _instrumentB?: IMelodicInstrument;
+  private _channelA: ChannelState = {
+    channel: TiaSoundChannel.A,
+    oscillator: new TiaOsc({ f: 0, v: 0, c: 0 }),
+    currentInstrument: undefined,
+    currentFrequency: undefined,
+    currentSequence: 0,
+    currentEnvelopeFrame: 0,
+  };
 
-  private _frequencyA?: number;
-  private _frequencyB?: number;
+  private _channelB: ChannelState = {
+    channel: TiaSoundChannel.B,
+    oscillator: new TiaOsc({ f: 0, v: 0, c: 0 }),
+    currentInstrument: undefined,
+    currentFrequency: undefined,
+    currentSequence: 0,
+    currentEnvelopeFrame: 0,
+  };
 
   public static middleware(resource: ILoaderResource, next: Function) {
     if (resource.extension !== 'ttt') return next();
@@ -52,8 +69,8 @@ export class TiaSound implements Track {
   }
 
   public constructor() {
-    this._oscA.connect(this._out);
-    this._oscB.connect(this._out);
+    this._channelA.oscillator.connect(this._out);
+    this._channelB.oscillator.connect(this._out);
     this._out.toDestination();
   }
 
@@ -79,19 +96,24 @@ export class TiaSound implements Track {
     if (this._stepLoopId) {
       Transport.clear(this._stepLoopId);
     }
-    this._stepLoopId = Transport.scheduleRepeat(this.schedule.bind(this), READ_AHEAD_SIZE);
+    this._stepLoopId = Transport.scheduleRepeat(
+      this.schedule.bind(this),
+      READ_AHEAD_SIZE,
+    );
   }
 
   public play(): void {
     if (this._isRunning) return;
-    if (Transport.state !== "started") {
+    if (Transport.state !== 'started') {
       Transport.start();
     }
     this._isRunning = true;
   }
 
-  public stop(): void {
+  public stop(time?: number): void {
     this._isRunning = false;
+    this._channelA.oscillator.v.setValueAtTime(0, time ?? this.currentTime);
+    this._channelB.oscillator.v.setValueAtTime(0, time ?? this.currentTime);
     Transport.clear(this._stepLoopId);
     this._stepLoopId = undefined;
   }
@@ -103,38 +125,48 @@ export class TiaSound implements Track {
     }
   }
 
-  private step(startTime: number) {
-    if (this.currentPatternA === undefined || this.currentPatternB === undefined) return;
+  private step(time: number) {
+    if (
+      this.currentPatternA === undefined ||
+      this.currentPatternB === undefined
+    )
+      return;
+
     if (this._frame === 0) {
       let noteA = this.currentPatternA.notes[this._row];
       let noteB = this.currentPatternB.notes[this._row];
-      this.scheduleNote(noteA, TiaSoundChannel.A, startTime);
-      this.scheduleNote(noteB, TiaSoundChannel.B, startTime);
+      this.scheduleNote(noteA, TiaSoundChannel.A, time);
+      this.scheduleNote(noteB, TiaSoundChannel.B, time);
     }
-    this.nextFrame();
+    this.nextFrame(time);
     return;
   }
 
-  private nextFrame() {
+  private nextFrame(time: number) {
     this._frame++;
     if (this._frame >= this.currentSpeed) {
       this._frame = 0;
       this._row++;
       if (this._row >= this.currentPatternA.notes.length) {
-        this.nextPattern();
+        this.nextPattern(time);
       }
     }
   }
 
-  private nextPattern() {
-    this._sequenceA = this.currentSequenceA.gototarget !== -1
-      ? this.currentSequenceA.gototarget
-      : this._sequenceA + 1;
-    this._sequenceB = this.currentSequenceB.gototarget !== -1
-      ? this.currentSequenceB.gototarget
-      : this._sequenceB + 1;
-    if (this._sequenceA >= this._song.channels[0].sequence.length || this._sequenceB >= this._song.channels[1].sequence.length) {
-      this.stop();
+  private nextPattern(time: number) {
+    this._sequenceA =
+      this.currentSequenceA.gototarget !== -1
+        ? this.currentSequenceA.gototarget
+        : this._sequenceA + 1;
+    this._sequenceB =
+      this.currentSequenceB.gototarget !== -1
+        ? this.currentSequenceB.gototarget
+        : this._sequenceB + 1;
+    if (
+      this._sequenceA >= this._song.channels[0].sequence.length ||
+      this._sequenceB >= this._song.channels[1].sequence.length
+    ) {
+      this.stop(time);
     }
     this._row = 0;
   }
@@ -153,16 +185,33 @@ export class TiaSound implements Track {
       case NoteType.Slide:
         return this.scheduleSlide(note.value, channel, time);
       case NoteType.Melodic:
-        return this.scheduleMelodic(<IMelodicInstrument>instrument, note.value, channel, time);
+        return this.scheduleMelodic(
+          <IMelodicInstrument>instrument,
+          note.value,
+          channel,
+          time,
+        );
       case NoteType.Percussion:
-        return this.schedulePercussion(<IPercussionInstrument>instrument, channel, time);
+        return this.schedulePercussion(
+          <IPercussionInstrument>instrument,
+          channel,
+          time,
+        );
     }
   }
 
   private scheduleHold(channel: TiaSoundChannel, time: number) {
     let instrument = this.getInstrumentForChannel(channel);
-    if (instrument === undefined) return;
-    this.playSustain(this.getFrequencyForChannel(channel), instrument, channel, time);
+    let frequency = this.getFrequencyForChannel(channel);
+    if (instrument === undefined || frequency === undefined) return;
+    let currentEnvelopeFrame = this.getCurrentEnvelopeFrameForChannel(channel);
+    if (currentEnvelopeFrame < instrument.sustainStart) {
+      this.playAttackDecay(frequency, instrument, channel, time);
+    } else if (currentEnvelopeFrame < instrument.releaseStart) {
+      this.playSustain(frequency, instrument, channel, time);
+    } else {
+      this.playRelease(frequency, instrument, channel, time);
+    }
   }
 
   private schedulePause(channel: TiaSoundChannel, time: number) {
@@ -170,25 +219,22 @@ export class TiaSound implements Track {
     this.setFrequencyForChannel(undefined, channel);
     let osc = this.getOscForChannel(channel);
     let instrument = this.getInstrumentForChannel(channel);
+    this.setInstrumentForChannel(undefined, channel);
+
     if (!instrument) {
       osc.v.setValueAtTime(0, time);
-    } else {
-      let releaseFrequencies = instrument.frequencies.slice(instrument.releaseStart, instrument.frequencies.length).map(f => frequency + f);
-      let releaseVolumes = instrument.volumes.slice(instrument.releaseStart, instrument.frequencies.length);
-      for (let i = instrument.releaseStart; i < instrument.envelopeLength; i++) {
-        let f = releaseFrequencies[i];
-        let c = instrument.waveform;
-        let v = releaseVolumes[i];
-        let t = time + i + this.secondsPerFrame;
-        osc.f.setValueAtTime(f, t);
-        osc.c.setValueAtTime(c, t);
-        osc.v.setValueAtTime(v, t);
-      }
+      return;
     }
-    this.setInstrumentForChannel(undefined, channel);
+
+    //RELEASE
+    this.playRelease(frequency, instrument, channel, time);
   }
 
-  private scheduleSlide(slideAmount: number, channel: TiaSoundChannel, time: number) {
+  private scheduleSlide(
+    slideAmount: number,
+    channel: TiaSoundChannel,
+    time: number,
+  ) {
     let frequency = this.getFrequencyForChannel(channel);
     if (frequency === undefined) return;
 
@@ -198,61 +244,149 @@ export class TiaSound implements Track {
     this.setFrequencyForChannel(newFrequency, channel);
   }
 
-  private scheduleMelodic(instrument: IMelodicInstrument, frequency: number, channel: TiaSoundChannel, time: number) {
+  private scheduleMelodic(
+    instrument: IMelodicInstrument,
+    frequency: number,
+    channel: TiaSoundChannel,
+    time: number,
+  ) {
     this.setInstrumentForChannel(instrument, channel);
     this.setFrequencyForChannel(frequency, channel);
-    let osc = this.getOscForChannel(channel);
+    this.setCurrentEnvelopeFrameForChannel(0, channel);
 
-    //ATTACK/DECAY
-    let attackDecayFrequencies = instrument.frequencies.slice(0, instrument.sustainStart).map(f => frequency + f);
-    let attackDecayVolumes = instrument.volumes.slice(0, instrument.sustainStart);
-    for (let i = 0; i < instrument.sustainStart; i++) {
-      let f = attackDecayFrequencies[i];
-      let c = instrument.waveform;
-      let v = attackDecayVolumes[i];
+    this.playAttackDecay(frequency, instrument, channel, time);
+    if (this.getCurrentEnvelopeFrameForChannel(channel) < this.currentSpeed) {
+      this.playSustain(frequency, instrument, channel, time);
+    }
+  }
+
+  private getFrequency(frequency: number): number {
+    return frequency % 31;
+  }
+
+  private getWaveformForInstrument(
+    frequency: number,
+    instrument: IMelodicInstrument,
+  ): number {
+    if (instrument.waveform !== WaveformType.PureCombined) {
+      return instrument.waveform;
+    }
+    //SPLIT PURE COMBINED WAVEFORM
+    return frequency >= 32 ? 12 : 4;
+  }
+
+  private playAttackDecay(
+    frequency: number,
+    instrument: IMelodicInstrument,
+    channel: TiaSoundChannel,
+    time: number,
+  ) {
+    console.debug('ATTACK/DECAY');
+    let osc = this.getOscForChannel(channel);
+    let attackDecayFrequencies = instrument.frequencies.map(
+      (f) => (frequency + f) % 31,
+    );
+    let attackDecayVolumes = instrument.volumes;
+    let currentEnvelopeFrame = this.getCurrentEnvelopeFrameForChannel(channel);
+    for (let i = 0; i < this.currentSpeed; i++) {
+      let f = this.getFrequency(attackDecayFrequencies[currentEnvelopeFrame]);
+      let c = this.getWaveformForInstrument(frequency, instrument);
+      let v = attackDecayVolumes[currentEnvelopeFrame];
       let t = time + i + this.secondsPerFrame;
       osc.f.setValueAtTime(f, t);
       osc.c.setValueAtTime(c, t);
       osc.v.setValueAtTime(v, t);
+      currentEnvelopeFrame++;
+      this.setCurrentEnvelopeFrameForChannel(currentEnvelopeFrame, channel);
     }
-
-    //SUSTAIN
-    this.playSustain(frequency, instrument, channel, time);
   }
 
-  private playSustain(frequency: number, instrument: IMelodicInstrument, channel: TiaSoundChannel, time: number) {
+  private playSustain(
+    frequency: number,
+    instrument: IMelodicInstrument,
+    channel: TiaSoundChannel,
+    time: number,
+  ) {
+    console.debug('SUSTAIN');
     let osc = this.getOscForChannel(channel);
-    let sustainFrequencies = instrument.frequencies.slice(instrument.sustainStart, instrument.releaseStart).map(f => frequency + f);
-    let sustainVolumes = instrument.volumes.slice(instrument.sustainStart, instrument.releaseStart);
-    for (let i = instrument.sustainStart; i < instrument.releaseStart; i++) {
-      let f = sustainFrequencies[i];
-      let c = instrument.waveform;
-      let v = sustainVolumes[i];
+    let sustainFrequencies = instrument.frequencies.map((f) => frequency + f);
+    let sustainVolumes = instrument.volumes;
+    let currentEnvelopeFrame = this.getCurrentEnvelopeFrameForChannel(channel);
+
+    for (let i = 0; i < this.currentSpeed; i++) {
+      let f = this.getFrequency(sustainFrequencies[currentEnvelopeFrame]);
+      let c = this.getWaveformForInstrument(frequency, instrument);
+      let v = sustainVolumes[currentEnvelopeFrame];
       let t = time + i + this.secondsPerFrame;
-      console.debug(f, c, v, t);
       osc.f.setValueAtTime(f, t);
       osc.c.setValueAtTime(c, t);
       osc.v.setValueAtTime(v, t);
+
+      currentEnvelopeFrame++;
+      if (currentEnvelopeFrame >= instrument.releaseStart) {
+        currentEnvelopeFrame = instrument.sustainStart;
+      }
+      this.setCurrentEnvelopeFrameForChannel(currentEnvelopeFrame, channel);
     }
   }
 
-  private schedulePercussion(instrument: IPercussionInstrument, channel: TiaSoundChannel, time: number) {
+  private playRelease(
+    frequency: number,
+    instrument: IMelodicInstrument,
+    channel: TiaSoundChannel,
+    time: number,
+  ) {
+    console.debug('RELEASE');
+    let osc = this.getOscForChannel(channel);
+    let releaseFrequencies = instrument.frequencies.map((f) => frequency + f);
+    let releaseVolumes = instrument.volumes;
+
+    let currentEnvelopeFrame = instrument.releaseStart;
+    for (let i = 0; i < this.currentSpeed; i++) {
+      let f = this.getFrequency(releaseFrequencies[currentEnvelopeFrame]);
+      let c = this.getWaveformForInstrument(frequency, instrument);
+      let v = releaseVolumes[currentEnvelopeFrame];
+      let t = time + i + this.secondsPerFrame;
+      osc.f.setValueAtTime(f, t);
+      osc.c.setValueAtTime(c, t);
+      osc.v.setValueAtTime(v, t);
+      currentEnvelopeFrame++;
+      this.setCurrentEnvelopeFrameForChannel(currentEnvelopeFrame, channel);
+    }
+  }
+
+  private schedulePercussion(
+    instrument: IPercussionInstrument,
+    channel: TiaSoundChannel,
+    time: number,
+  ) {
     this.setFrequencyForChannel(undefined, channel);
     this.setInstrumentForChannel(undefined, channel);
     let osc = this.getOscForChannel(channel);
-    for (let i = 0; i < instrument.envelopeLength; i++) {
-      let f = instrument.frequencies[i];
-      let c = instrument.waveforms[i];
-      let v = instrument.volumes[i];
+    let currentEnvelopeFrame = this.getCurrentEnvelopeFrameForChannel(channel);
+    for (let i = 0; i < this.currentSpeed; i++) {
+      let f = this.getFrequency(instrument.frequencies[currentEnvelopeFrame]);
+      let c = instrument.waveforms[currentEnvelopeFrame];
+      let v = instrument.volumes[currentEnvelopeFrame];
       let t = time + i * this.secondsPerFrame;
       osc.f.setValueAtTime(f, t);
       osc.c.setValueAtTime(c, t);
       osc.v.setValueAtTime(v, t);
+      currentEnvelopeFrame++;
+      if (currentEnvelopeFrame > instrument.envelopeLength) {
+        osc.v.setValueAtTime(
+          0,
+          time + instrument.envelopeLength * this.secondsPerFrame,
+        );
+        currentEnvelopeFrame = 0;
+      }
+      this.setCurrentEnvelopeFrameForChannel(currentEnvelopeFrame, channel);
     }
-    osc.v.setValueAtTime(0, time + instrument.envelopeLength * this.secondsPerFrame);
   }
 
-  private getInstrument(note: INote): IMelodicInstrument | IPercussionInstrument | null {
+  private getInstrument(
+    note: INote,
+  ): IMelodicInstrument | IPercussionInstrument | null {
     switch (note.type) {
       case NoteType.Melodic:
         return this._song.instruments[note.number];
@@ -264,44 +398,70 @@ export class TiaSound implements Track {
   }
 
   private getInstrumentForChannel(channel: TiaSoundChannel) {
-    return channel === TiaSoundChannel.A ?
-      this._instrumentA :
-      this._instrumentB;
+    return channel === TiaSoundChannel.A
+      ? this._channelA.currentInstrument
+      : this._channelB.currentInstrument;
   }
 
-  private setInstrumentForChannel(instrument: IMelodicInstrument, channel: TiaSoundChannel) {
+  private setInstrumentForChannel(
+    instrument: IMelodicInstrument,
+    channel: TiaSoundChannel,
+  ) {
     channel === TiaSoundChannel.A
-      ? this._instrumentA = instrument
-      : this._instrumentB = instrument;
+      ? (this._channelA.currentInstrument = instrument)
+      : (this._channelB.currentInstrument = instrument);
   }
 
   private getFrequencyForChannel(channel: TiaSoundChannel): number | undefined {
-    return channel === TiaSoundChannel.B ?
-      this._frequencyA :
-      this._frequencyB;
+    return channel === TiaSoundChannel.A
+      ? this._channelA.currentFrequency
+      : this._channelB.currentFrequency;
   }
 
-  private setFrequencyForChannel(frequency: number | undefined, channel: TiaSoundChannel) {
+  private setFrequencyForChannel(
+    frequency: number | undefined,
+    channel: TiaSoundChannel,
+  ) {
     if (channel === TiaSoundChannel.A) {
-      this._frequencyA = frequency;
+      this._channelA.currentFrequency = frequency;
     } else {
-      this._frequencyB = frequency;
+      this._channelB.currentFrequency = frequency;
     }
   }
 
   private getOscForChannel(channel: TiaSoundChannel): TiaOsc {
-    return channel === TiaSoundChannel.A ? this._oscA : this._oscB;
+    return channel === TiaSoundChannel.A
+      ? this._channelA.oscillator
+      : this._channelB.oscillator;
+  }
+
+  private getCurrentEnvelopeFrameForChannel(channel: TiaSoundChannel): number {
+    return channel === TiaSoundChannel.A
+      ? this._channelA.currentEnvelopeFrame
+      : this._channelB.currentEnvelopeFrame;
+  }
+
+  private setCurrentEnvelopeFrameForChannel(
+    frame: number,
+    channel: TiaSoundChannel,
+  ) {
+    channel === TiaSoundChannel.A
+      ? (this._channelA.currentEnvelopeFrame = frame)
+      : (this._channelB.currentEnvelopeFrame = frame);
   }
 
   private get currentSpeed(): number {
     let isEven = this._row % 2 === 0;
-    if (this._song.globalspeed === undefined || this._song.globalspeed === true) {
+    if (
+      this._song.globalspeed === undefined ||
+      this._song.globalspeed === true
+    ) {
       return isEven ? this._song.evenspeed : this._song.oddspeed;
     } else {
       let pattern = this.currentPatternA;
       return isEven
-        ? (pattern.evenspeed ?? this._song.evenspeed)
-        : (pattern.oddspeed ?? this._song.oddspeed);
+        ? pattern.evenspeed ?? this._song.evenspeed
+        : pattern.oddspeed ?? this._song.oddspeed;
     }
   }
 

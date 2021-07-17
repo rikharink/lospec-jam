@@ -6,6 +6,20 @@ export enum NoteType {
   Slide = 4,
 }
 
+export enum WaveformType {
+  Buzzy = 1,
+  BuzzyRumble = 2,
+  FlangyWavering = 3,
+  PureHigh = 4,
+  PureBuzzy = 6,
+  ReedyRumble = 7,
+  WhiteNoise = 8,
+  PureLow = 12,
+  ElectronicRumble = 14,
+  ElectronicSqueal = 15,
+  PureCombined = 16,
+}
+
 export interface ISequence {
   gototarget: number;
   patternindex: number;
@@ -23,7 +37,7 @@ export interface IMelodicInstrument {
   sustainStart: number;
   version: number;
   volumes: number[];
-  waveform: number;
+  waveform: WaveformType;
 }
 
 export interface IPercussionInstrument {
