@@ -32,7 +32,7 @@ export class Dialog extends Modal {
     cancelLabel = 'CANCEL',
   }: Partial<DialogOptions>) {
     super();
-    let [width, height] = Game.game.size;
+    let [width, height] = Game.shared.size;
 
     let dialog = new Graphics();
     dialog.beginFill(backgroundColor);

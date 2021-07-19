@@ -65,14 +65,9 @@ function getCredit(c: Credit): CreditComponent {
 export function getCreditsScene(credits: Credit[]): Scene {
   const id = 'credits';
   const world = createWorld();
-  const player = addEntity(world);
-
-  addComponent(world, PositionComponent, player);
-  addComponent(world, Velocity, player);
-  addComponent(world, IsPlayerCharacter, player);
-
+  
   const backgroundColor = Palette.background;
-  const [width, height] = Game.game.size;
+  const [width, height] = Game.shared.size;
   const stage = new Container();
   stage.name = id;
   const text = new Label('CREDITS');

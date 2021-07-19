@@ -1,3 +1,4 @@
+import { Ticker, UPDATE_PRIORITY } from 'pixi.js';
 import { EventEmitter } from './../event-emitter';
 import {
   GamepadManager,
@@ -76,8 +77,6 @@ interface GameInputEvent {
   inputs: Input[];
 }
 
-interface ActionState {}
-
 export class InputManager extends EventEmitter<Action> {
   private static _shared: InputManager = new InputManager();
   private _gamepadManager = GamepadManager.shared;
@@ -89,18 +88,31 @@ export class InputManager extends EventEmitter<Action> {
   private _pointerEventMappings = new Map<PointerEventType, Action[]>();
   private _gamepadEventMappings = new Map<GamepadManagerEventType, Action[]>();
 
-  private _actionState = new Map<Action, ActionState>();
+  private _saveStateActions: Action[] = [];
+  private _actionState = new Map<Action, boolean>();
 
   constructor() {
     super();
+    this.on(this.saveActionState.bind(this));
   }
 
   public get gamepadManager(): GamepadManager {
     return this._gamepadManager;
   }
 
-  public getState(action: Action): ActionState {
-    return this._actionState.get(action);
+  public hasAction(action: Action): boolean {
+    return this._actionState.get(action) ?? false;
+  }
+
+  private saveActionState(action: Action) {
+    if (this._saveStateActions.indexOf(action) === -1) return;
+    this._actionState.set(action, true);
+  }
+
+  public clearState(...actions: Action[]) {
+    for (let action of actions) {
+      this._actionState.set(action, false);
+    }
   }
 
   private emitIfSubcribedKeyboard(ev: KeyboardEvent) {
@@ -195,6 +207,7 @@ export class InputManager extends EventEmitter<Action> {
     if (event.aliases) {
       this._aliasMappings.set(event.action, event.aliases);
     }
+    this._saveStateActions.push(event.action);
     for (let input of event.inputs) {
       this.subscribe(event.action, input);
     }

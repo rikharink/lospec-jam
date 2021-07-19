@@ -9,7 +9,7 @@ import { Viewport } from '../ui-components/viewport';
 import { createWorld } from 'bitecs';
 
 export function getTitleScreen(): Scene {
-  let game = Game.game;
+  let game = Game.shared;
   let world = createWorld();
   let stage = new Viewport();
 

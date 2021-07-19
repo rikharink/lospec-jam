@@ -107,7 +107,7 @@ export abstract class ContentView extends Container {
   }
 
   public centerInScreen() {
-    let [x, y] = calculateCenter(Game.game.size, getSize(this.content));
+    let [x, y] = calculateCenter(Game.shared.size, getSize(this.content));
     this.position.set(x, y);
   }
 }

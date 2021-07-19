@@ -1,274 +1,294 @@
-import { GamepadManagerEventType, GamepadManagerEvent, GamepadManagerButtonEvent } from "./managers/gamepad-manager";
-import { InputDevice, InputManager } from "./managers/input-manager";
+import {
+  GamepadManagerEventType,
+  GamepadManagerEvent,
+  GamepadManagerButtonEvent,
+} from './managers/gamepad-manager';
+import { InputDevice, InputManager } from './managers/input-manager';
+
+export enum ControllerAction {
+  'UpPressed' = 'up-pressed',
+  'DownPressed' = 'down-pressed',
+  'LeftPressed' = 'left-pressed',
+  'RightPressed' = 'right-pressed',
+  'APressed' = 'a-pressed',
+  'BPressed' = 'b-pressed',
+  'UpReleased' = 'up-released',
+  'DownReleased' = 'down-released',
+  'LeftReleased' = 'left-released',
+  'RightReleased' = 'right-released',
+  'AReleased' = 'a-released',
+  'BReleased' = 'b-released',
+  'Start' = 'start',
+}
 
 export function setupController() {
-    InputManager.shared.addEvents(
+  InputManager.shared.addEvents(
+    {
+      action: ControllerAction.UpPressed,
+      inputs: [
         {
-            action: 'up-pressed',
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keydown',
-                    key: 'ArrowUp',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonDown,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 12;
-                    },
-                },
-            ],
+          type: InputDevice.Keyboard,
+          eventType: 'keydown',
+          key: 'ArrowUp',
         },
         {
-            action: 'down-pressed',
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keydown',
-                    key: 'ArrowDown',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonDown,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 13;
-                    },
-                },
-            ],
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonDown,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 12;
+          },
+        },
+      ],
+    },
+    {
+      action: ControllerAction.DownPressed,
+      inputs: [
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keydown',
+          key: 'ArrowDown',
         },
         {
-            action: 'left-pressed',
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keydown',
-                    key: 'ArrowLeft',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonDown,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 14;
-                    },
-                },
-            ],
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonDown,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 13;
+          },
+        },
+      ],
+    },
+    {
+      action: ControllerAction.LeftPressed,
+      inputs: [
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keydown',
+          key: 'ArrowLeft',
         },
         {
-            action: 'right-pressed',
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keydown',
-                    key: 'ArrowRight',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonDown,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 15;
-                    },
-                },
-            ],
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonDown,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 14;
+          },
+        },
+      ],
+    },
+    {
+      action: ControllerAction.RightPressed,
+      inputs: [
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keydown',
+          key: 'ArrowRight',
         },
         {
-            action: 'a-pressed',
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keydown',
-                    key: 'z',
-                },
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keydown',
-                    key: ' ',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonDown,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 0;
-                    },
-                },
-            ],
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonDown,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 15;
+          },
+        },
+      ],
+    },
+    {
+      action: ControllerAction.APressed,
+      inputs: [
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keydown',
+          key: 'z',
         },
         {
-            action: 'b-pressed',
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keydown',
-                    key: 'x',
-                },
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keydown',
-                    key: 'Alt',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonDown,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 1;
-                    },
-                },
-            ],
+          type: InputDevice.Keyboard,
+          eventType: 'keydown',
+          key: ' ',
         },
         {
-            action: 'up-released',
-            aliases: ['previous-item'],
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keyup',
-                    key: 'ArrowUp',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonUp,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 12;
-                    },
-                },
-            ],
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonDown,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 0;
+          },
+        },
+      ],
+    },
+    {
+      action: ControllerAction.BPressed,
+      inputs: [
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keydown',
+          key: 'x',
         },
         {
-            action: 'down-released',
-            aliases: ['next-item'],
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keyup',
-                    key: 'ArrowDown',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonUp,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 13;
-                    },
-                },
-            ],
+          type: InputDevice.Keyboard,
+          eventType: 'keydown',
+          key: 'Alt',
         },
         {
-            action: 'left-released',
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keyup',
-                    key: 'ArrowLeft',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonUp,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 14;
-                    },
-                },
-            ],
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonDown,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 1;
+          },
+        },
+      ],
+    },
+    {
+      action: ControllerAction.UpReleased,
+      aliases: ['previous-item'],
+      inputs: [
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keyup',
+          key: 'ArrowUp',
         },
         {
-            action: 'right-released',
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keyup',
-                    key: 'ArrowRight',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonUp,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 15;
-                    },
-                },
-            ],
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonUp,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 12;
+          },
+        },
+      ],
+    },
+    {
+      action: ControllerAction.DownReleased,
+      aliases: ['next-item'],
+      inputs: [
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keyup',
+          key: 'ArrowDown',
         },
         {
-            action: 'a-released',
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keyup',
-                    key: 'z',
-                },
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keyup',
-                    key: ' ',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonUp,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 0;
-                    },
-                },
-            ],
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonUp,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 13;
+          },
+        },
+      ],
+    },
+    {
+      action: ControllerAction.LeftReleased,
+      inputs: [
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keyup',
+          key: 'ArrowLeft',
         },
         {
-            action: 'b-released',
-            aliases: ['back'],
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keyup',
-                    key: 'x',
-                },
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keyup',
-                    key: 'Alt',
-                },
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keyup',
-                    key: 'Backspace',
-                },
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keyup',
-                    key: 'Escape',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonUp,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 1;
-                    },
-                },
-            ],
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonUp,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 14;
+          },
+        },
+      ],
+    },
+    {
+      action: ControllerAction.RightReleased,
+      inputs: [
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keyup',
+          key: 'ArrowRight',
         },
         {
-            action: 'start',
-            inputs: [
-                {
-                    type: InputDevice.Keyboard,
-                    eventType: 'keyup',
-                    key: 'Enter',
-                },
-                {
-                    type: InputDevice.Gamepad,
-                    eventType: GamepadManagerEventType.GamepadButtonUp,
-                    predicate: (ev: GamepadManagerEvent) => {
-                        let e = ev as GamepadManagerButtonEvent;
-                        return e?.button === 9;
-                    },
-                },
-            ],
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonUp,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 15;
+          },
         },
-    );
+      ],
+    },
+    {
+      action: ControllerAction.AReleased,
+      inputs: [
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keyup',
+          key: 'z',
+        },
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keyup',
+          key: ' ',
+        },
+        {
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonUp,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 0;
+          },
+        },
+      ],
+    },
+    {
+      action: ControllerAction.BReleased,
+      aliases: ['back'],
+      inputs: [
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keyup',
+          key: 'x',
+        },
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keyup',
+          key: 'Alt',
+        },
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keyup',
+          key: 'Backspace',
+        },
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keyup',
+          key: 'Escape',
+        },
+        {
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonUp,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 1;
+          },
+        },
+      ],
+    },
+    {
+      action: ControllerAction.Start,
+      inputs: [
+        {
+          type: InputDevice.Keyboard,
+          eventType: 'keyup',
+          key: 'Enter',
+        },
+        {
+          type: InputDevice.Gamepad,
+          eventType: GamepadManagerEventType.GamepadButtonUp,
+          predicate: (ev: GamepadManagerEvent) => {
+            let e = ev as GamepadManagerButtonEvent;
+            return e?.button === 9;
+          },
+        },
+      ],
+    },
+  );
 }

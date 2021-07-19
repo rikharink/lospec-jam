@@ -28,7 +28,7 @@ export class Game extends Application {
     super(options);
   }
 
-  public static get game(): Game {
+  public static get shared(): Game {
     if (!this._game) throw Error('Call init before accessing game');
     return this._game;
   }
