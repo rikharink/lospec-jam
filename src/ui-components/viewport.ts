@@ -35,6 +35,7 @@ interface IViewportTransformState {
   y: number;
   scaleX: number;
   scaleY: number;
+  rotation: number;
 }
 
 const DEFAULT_VIEWPORT_OPTIONS: IViewportOptions = {
@@ -117,6 +118,7 @@ export class Viewport extends Container {
         y: this.y,
         scaleX: this.scale.x,
         scaleY: this.scale.y,
+        rotation: this.rotation,
       };
     }
   }
@@ -491,6 +493,7 @@ export class Viewport extends Container {
   get scaled(): number {
     return this.scale.x;
   }
+
   set scaled(scale: number) {
     this.setZoom(scale, true);
   }
@@ -603,22 +606,6 @@ export class Viewport extends Container {
       (width > this.worldScreenWidth || height > this.worldScreenHeight)
     ) {
       this.fit(true, width, height);
-    }
-    let moved = false;
-
-    if (x < this.left) {
-      this.left = x;
-      moved = true;
-    } else if (x + width > this.right) {
-      this.right = x + width;
-      moved = true;
-    }
-    if (y < this.top) {
-      this.top = y;
-      moved = true;
-    } else if (y + height > this.bottom) {
-      this.bottom = y + height;
-      moved = true;
     }
   }
 }

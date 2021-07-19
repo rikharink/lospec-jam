@@ -4,7 +4,7 @@ import { InputManager } from './input-manager';
 import { Container, Ticker } from 'pixi.js';
 import type { Milliseconds } from '../types';
 import type { Game } from '../game';
-import type { Scene } from '../scenes/scene';
+import type { Scene } from '../interfaces/scene';
 import { Dialog } from '../ui-components/dialog';
 
 export class SceneManager {

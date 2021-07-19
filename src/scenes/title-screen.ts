@@ -1,5 +1,5 @@
 import { Label } from '../ui-components/label';
-import type { Scene } from './scene';
+import type { Scene } from '../interfaces/scene';
 import { Palette } from '../palette';
 import { PixiTiledMapOrthogonal } from '../loaders/tiled/pixi-tiled-map-orthogonal';
 import { AnimatedSprite, Ticker, UPDATE_PRIORITY } from 'pixi.js';

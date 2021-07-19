@@ -1,4 +1,4 @@
-import type { Identifiable } from '../interfaces/identifiable';
+import type { Identifiable } from './identifiable';
 
 export interface Track extends Identifiable {
   play(): void;

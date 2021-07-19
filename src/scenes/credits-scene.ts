@@ -4,7 +4,7 @@ import { ScrollView } from '../ui-components/scroll-view';
 import { Container, Ticker, UPDATE_PRIORITY } from 'pixi.js';
 import { Label } from '../ui-components/label';
 import { Palette } from '../palette';
-import type { Scene } from './scene';
+import type { Scene } from '../interfaces/scene';
 import { Game } from '../game';
 import { createWorld, addEntity, addComponent } from 'bitecs';
 import {

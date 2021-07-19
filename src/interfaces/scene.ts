@@ -1,6 +1,6 @@
-import type { Identifiable } from '../interfaces/identifiable';
+import type { Identifiable } from './identifiable';
 import type { Container, Ticker } from 'pixi.js';
-import type { Track } from '../sound/track';
+import type { Track } from './track';
 import { SelectableItem } from '../managers/selection-manager';
 import { IWorld } from 'bitecs';
 

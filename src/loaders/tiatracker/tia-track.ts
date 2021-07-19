@@ -1,8 +1,8 @@
 import { ILoaderResource, Loader } from 'pixi.js';
 import { Gain, Transport } from 'tone';
 import { Seconds } from 'tone/build/esm/core/type/Units';
-import { Track } from '../../sound/track';
-import { TiaOsc } from './tia-osc';
+import { Track } from '../../interfaces/track';
+import { TiaOsc } from '../../audio/source/tia-osc';
 import {
   ISong,
   IMelodicInstrument,
@@ -33,7 +33,7 @@ interface ChannelState {
 //TODO: Melodic instrument envelopes sound all off... probably timing issues :-(
 //TODO: overlay percussion
 
-export class TiaSound implements Track {
+export class TiaTrack implements Track {
   private _song: ISong;
   private _isRunning: boolean = false;
   private _stepLoopId?: number;

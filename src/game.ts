@@ -7,12 +7,12 @@ import {
   UPDATE_PRIORITY,
 } from 'pixi.js';
 import { setupController } from './controller';
-import { TiaSound } from './loaders/tiatracker/tia-sound';
+import { TiaTrack } from './loaders/tiatracker/tia-track';
 import { PixiTiledMapOrthogonal } from './loaders/tiled/pixi-tiled-map-orthogonal';
 import { AudioManager } from './managers/audio-manager';
 import { InputManager } from './managers/input-manager';
 import { SceneManager } from './managers/scene-manager';
-import { Scene } from './scenes/scene';
+import { Scene } from './interfaces/scene';
 import { getTitleScreen } from './scenes/title-screen';
 import type { Size } from './types';
 
@@ -49,7 +49,7 @@ export class Game extends Application {
     return new Promise((resolve) => {
       this.loader
         .use(PixiTiledMapOrthogonal.middleware)
-        .use(TiaSound.middleware)
+        .use(TiaTrack.middleware)
         .add('art/tilesheet.png')
         .add(Game.spritesheetFile)
         .add('titlescreen', 'maps/title-screen.tiled.json')

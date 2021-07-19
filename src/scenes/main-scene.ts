@@ -1,5 +1,5 @@
 import { timerSystem } from '../ecs/systems';
-import type { Scene } from './scene';
+import type { Scene } from '../interfaces/scene';
 import { Container, Ticker } from 'pixi.js';
 import { Palette } from '../palette';
 import { createWorld } from 'bitecs';
