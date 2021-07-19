@@ -112,6 +112,9 @@ export class TiaSound implements Track {
 
   public stop(time?: number): void {
     this._isRunning = false;
+    console.debug(
+      `STOP AT ${time ?? this.currentTime} currently ${this.currentTime}`,
+    );
     this._channelA.oscillator.v.setValueAtTime(0, time ?? this.currentTime);
     this._channelB.oscillator.v.setValueAtTime(0, time ?? this.currentTime);
     Transport.clear(this._stepLoopId);

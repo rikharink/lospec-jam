@@ -1,4 +1,4 @@
-import { ContentView } from '../components/content-view';
+import { ContentView } from '../ui-components/content-view';
 import { uuidv4 } from '../util';
 import {
   NO_ITEM_SELECTED,

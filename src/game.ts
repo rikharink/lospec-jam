@@ -4,7 +4,7 @@ import {
   Loader,
   Resource,
   Spritesheet,
-  UPDATE_PRIORITY
+  UPDATE_PRIORITY,
 } from 'pixi.js';
 import { setupController } from './controller';
 import { TiaSound } from './loaders/tiatracker/tia-sound';
@@ -16,7 +16,7 @@ import { Scene } from './scenes/scene';
 import { getTitleScreen } from './scenes/title-screen';
 import type { Size } from './types';
 
-interface GameOptions extends IApplicationOptions { }
+interface GameOptions extends IApplicationOptions {}
 
 export class Game extends Application {
   private static _game?: Game;
@@ -61,9 +61,9 @@ export class Game extends Application {
   }
 
   private async setupAudio(): Promise<void> {
-    let s = new TiaSound();
-    s.loadSong('fff');
-    s.play();
+    // let s = new TiaSound();
+    // s.loadSong('fff');
+    // s.play();
   }
 
   public static async init(options?: GameOptions): Promise<Game> {

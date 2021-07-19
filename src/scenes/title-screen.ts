@@ -1,20 +1,24 @@
-import { Label } from './../components/label';
+import { Label } from '../ui-components/label';
 import type { Scene } from './scene';
 import { Palette } from '../palette';
 import { PixiTiledMapOrthogonal } from '../loaders/tiled/pixi-tiled-map-orthogonal';
-import { AnimatedSprite, Container, Ticker, UPDATE_PRIORITY } from 'pixi.js';
+import { AnimatedSprite, Ticker, UPDATE_PRIORITY } from 'pixi.js';
 import { Game } from '../game';
 import { getMainScene } from './main-scene';
+import { Viewport } from '../ui-components/viewport';
+import { createWorld } from 'bitecs';
 
 export function getTitleScreen(): Scene {
   let game = Game.game;
-  let stage = new Container();
+  let world = createWorld();
+  let stage = new Viewport();
+
   let titlemap = new PixiTiledMapOrthogonal('titlescreen');
   stage.addChild(titlemap);
   let [width, height] = game.size;
   let label = new Label('PRESS START');
   label.x = (width - label.width) / 2;
-  label.y = ((height - label.height) / 2) + 7.5;
+  label.y = (height - label.height) / 2 + 7.5;
   stage.addChild(label);
 
   let ghostyIdleAnim = game.spritesheet.animations['ghosty-idle'];
@@ -35,7 +39,8 @@ export function getTitleScreen(): Scene {
   ticker.add(() => {}, UPDATE_PRIORITY.NORMAL);
   return {
     id: 'titlescreen',
-    stage: stage,
+    world,
+    stage,
     backgroundColor: Palette.background,
     canPause: false,
     selectableItems: [],

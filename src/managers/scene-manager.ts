@@ -2,18 +2,15 @@ import { SelectionManager } from './selection-manager';
 import { Modal, ModalManager } from './modal-manager';
 import { InputManager } from './input-manager';
 import { Container, Ticker } from 'pixi.js';
-import type { Milliseconds, CameraTransition } from '../types';
-import { Camera } from 'pixi-game-camera';
+import type { Milliseconds } from '../types';
 import type { Game } from '../game';
 import type { Scene } from '../scenes/scene';
-import { Dialog } from '../components/dialog';
+import { Dialog } from '../ui-components/dialog';
 
 export class SceneManager {
   private _game?: Game;
   private _root: Container = new Container();
   private _sceneStack = new Array<Scene>();
-  private _camera: Camera;
-  private _transition?: CameraTransition;
   private _transitionDuration: Milliseconds = 200;
   private static _sceneManager = new SceneManager();
   private _paused: boolean = false;
@@ -21,9 +18,6 @@ export class SceneManager {
   private _modalManager: ModalManager = ModalManager.shared;
 
   constructor() {
-    this._camera = new Camera({
-      ticker: Ticker.shared,
-    });
     this.subscribeToEvents();
   }
 
@@ -101,8 +95,7 @@ export class SceneManager {
 
   public set currentScene(scene: Scene) {
     if (scene.id == this.currentScene?.id) return;
-    let duration = this._transition ? this._transitionDuration : 0;
-    setTimeout(() => this.setScene.bind(this)(scene), duration);
+    this.setScene(scene);
   }
 
   public back() {

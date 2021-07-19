@@ -829,7 +829,7 @@
     "@babel/types" "^7.4.4"
     esutils "^2.0.2"
 
-"@babel/runtime@^7.11.2", "@babel/runtime@^7.14.6", "@babel/runtime@^7.8.4":
+"@babel/runtime@^7.14.6", "@babel/runtime@^7.8.4":
   version "7.14.6"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.14.6.tgz#535203bc0892efc7dec60bdc27b2ecf6e409062d"
   integrity sha512-/PCB2uJ7oM44tz8YhC4Z/6PeOKXp4K588f+5M3clr1M4zbqztlo0XEfJ2LEzj/FgwfgGcIdl8n7YYjTCI0BYwg==
@@ -1714,6 +1714,11 @@ big.js@^5.2.2:
   resolved "https://registry.yarnpkg.com/big.js/-/big.js-5.2.2.tgz#65f0af382f578bcdc742bd9c281e9cb2d7768328"
   integrity sha512-vyL2OymJxmarO8gxMr0mhChsO9QGwhynfuu4+MHTAW6czfq9humCB7rKpUjDd9YUiDPU4mzpyupFSvOClAwbmQ==
 
+bitecs@^0.3.15-1:
+  version "0.3.15-1"
+  resolved "https://registry.yarnpkg.com/bitecs/-/bitecs-0.3.15-1.tgz#8f8b38396c0712c5f4a3d8f18980ff808fcf0474"
+  integrity sha512-Xuxs5eP7R9aYlMm35GTIKhM3BTwABU35CmCqwNDjBqTekppm9JturlPpbOl6TPdcV9ATMfgkRMNX79b/d62gEA==
+
 boolbase@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/boolbase/-/boolbase-1.0.0.tgz#68dff5fbe60c51eb37725ea9e3ed310dcc1e776e"
@@ -2491,6 +2496,11 @@ form-data@~2.3.2:
     combined-stream "^1.0.6"
     mime-types "^2.1.12"
 
+fractal-noise@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/fractal-noise/-/fractal-noise-1.2.0.tgz#94bedcf499874d9b5c6e418be0edc74f86dbe071"
+  integrity sha512-H1B2d45cSDSlIsy+dA5/kpiTsHG4EEGQCt9jlWXj8o4Hq0vMXQ4MEVYHJPTYU4ehaSe9NwX0j1VEMfWCcfS4UA==
+
 fs-extra@^8.1.0:
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-8.1.0.tgz#49d43c45a88cd9677668cb7be1b46efdb8d2e1c0"
@@ -2752,13 +2762,6 @@ humanize-ms@^1.2.1:
   integrity sha1-xG4xWaKT9riW2ikxbYtv6Lt5u+0=
   dependencies:
     ms "^2.0.0"
-
-hypergiant@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/hypergiant/-/hypergiant-3.1.0.tgz#7ec3884afa67561e1911d02741873fcb811a6924"
-  integrity sha512-ddDjI/p+peymGseSuiWbyyiPhmCmuAyWzrZHefR2zBBE0BX2g/a0+De7zkS0qq5QUmpIAkQGXpoB71wKNinBvg==
-  dependencies:
-    "@babel/runtime" "^7.11.2"
 
 iconv-lite@0.4.24:
   version "0.4.24"
@@ -3483,6 +3486,11 @@ onetime@^5.1.2:
   dependencies:
     mimic-fn "^2.1.0"
 
+open-simplex-noise@^2.5.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/open-simplex-noise/-/open-simplex-noise-2.5.0.tgz#2f88539c2e3a70eb387a3609bdb2aede547bb0db"
+  integrity sha512-co7x8uWxGcgFtsJNBFqI9ylq+5Isotz2hZR7dsD5Sl+RDPGBeMEG41KAfF+5gF10ksi9Pg6DNpMHEoyTKLbejQ==
+
 open@^8.2.1:
   version "8.2.1"
   resolved "https://registry.yarnpkg.com/open/-/open-8.2.1.tgz#82de42da0ccbf429bc12d099dad2e0975e14e8af"
@@ -3652,13 +3660,6 @@ pinkie@^2.0.0:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/pinkie/-/pinkie-2.0.4.tgz#72556b80cfa0d48a974e80e77248e80ed4f7f870"
   integrity sha1-clVrgM+g1IqXToDnckjoDtT3+HA=
-
-pixi-game-camera@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/pixi-game-camera/-/pixi-game-camera-1.0.2.tgz#4b65c6991a3880190614ac333a24073999d53888"
-  integrity sha512-3uaR5dVV7CzMXM8zuS5NSl7cK74jVj7aHhwUuoxZDSmmZhwQGIJLSXwHdTKMzbXkMbGboplzhtaaLSldfKfjNQ==
-  dependencies:
-    hypergiant "^3.1.0"
 
 pixi.js@^6.0.4:
   version "6.0.4"

@@ -1,4 +1,3 @@
-import type { Effect } from 'pixi-game-camera';
 import type { Container } from 'pixi.js';
 import {
   KeyboardInput,
@@ -11,10 +10,6 @@ export type Constructor = new (...args: any[]) => {};
 export type GConstructor<T = {}> = new (...args: any[]) => T;
 
 export type Milliseconds = number;
-export type CameraTransition = (
-  container: Container,
-  duration: Milliseconds,
-) => Effect;
 
 export type UUIDV4 = string;
 export type Random = () => number;

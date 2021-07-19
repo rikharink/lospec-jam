@@ -1,10 +1,17 @@
-import { StackLayout, StackLayoutOptions } from './../components/stack-layout';
-import { ScrollView } from './../components/scroll-view';
+import { Position } from './../types';
+import { StackLayout, StackLayoutOptions } from '../ui-components/stack-layout';
+import { ScrollView } from '../ui-components/scroll-view';
 import { Container, Ticker, UPDATE_PRIORITY } from 'pixi.js';
-import { Label } from '../components/label';
+import { Label } from '../ui-components/label';
 import { Palette } from '../palette';
 import type { Scene } from './scene';
 import { Game } from '../game';
+import { createWorld, addEntity, addComponent } from 'bitecs';
+import {
+  Position as PositionComponent,
+  Velocity,
+  IsPlayerCharacter,
+} from '../ecs/components';
 
 interface Credit {
   title: string;
@@ -57,6 +64,13 @@ function getCredit(c: Credit): CreditComponent {
 
 export function getCreditsScene(credits: Credit[]): Scene {
   const id = 'credits';
+  const world = createWorld();
+  const player = addEntity(world);
+
+  addComponent(world, PositionComponent, player);
+  addComponent(world, Velocity, player);
+  addComponent(world, IsPlayerCharacter, player);
+
   const backgroundColor = Palette.background;
   const [width, height] = Game.game.size;
   const stage = new Container();
@@ -100,6 +114,7 @@ export function getCreditsScene(credits: Credit[]): Scene {
 
   return {
     id,
+    world,
     stage,
     backgroundColor,
     ticker,
