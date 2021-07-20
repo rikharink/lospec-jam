@@ -1,5 +1,5 @@
 import { Ticker, UPDATE_PRIORITY } from 'pixi.js';
-import { EventEmitter } from '../event-emitter';
+import { EventEmitter } from '../util/event-emitter';
 import { Disposable } from '../interfaces/disposable';
 import { GamepadEffect, RawGamepad } from '../interfaces/raw-gamepad';
 
@@ -16,8 +16,8 @@ export interface GamepadManagerEvent {
 
 export interface GamepadManagerButtonEvent extends GamepadManagerEvent {
   type:
-    | GamepadManagerEventType.GamepadButtonDown
-    | GamepadManagerEventType.GamepadButtonUp;
+  | GamepadManagerEventType.GamepadButtonDown
+  | GamepadManagerEventType.GamepadButtonUp;
   button: number;
   value?: number;
 }
@@ -39,8 +39,7 @@ interface GamepadState {
 
 export class GamepadManager
   extends EventEmitter<GamepadManagerEvent>
-  implements Disposable
-{
+  implements Disposable {
   private static _shared: GamepadManager = new GamepadManager();
   private _ticker: Ticker = new Ticker();
   private _gamepads = new Map<number, GamepadState>();

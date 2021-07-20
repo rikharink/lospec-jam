@@ -1,9 +1,8 @@
-import { playerCharacterMovementSystem } from './../ecs/systems';
-import { timerSystem } from '../ecs/systems';
+import { playerCharacterMovementSystem, timerSystem, velocitySystem } from './../ecs/systems';
 import type { Scene } from '../interfaces/scene';
 import { AnimatedSprite, Container, Ticker, UPDATE_PRIORITY } from 'pixi.js';
 import { Palette } from '../palette';
-import { addComponent, addEntity, createWorld } from 'bitecs';
+import { addComponent, addEntity, createWorld, pipe } from 'bitecs';
 import { Game } from '../game';
 import { IsPlayerCharacter, Velocity, Position } from '../ecs/components';
 
@@ -28,11 +27,9 @@ export function getMainScene(): Scene {
   ghostyIdle.y = 105;
   ghostyIdle.gotoAndPlay(0);
   stage.addChild(ghostyIdle);
-
+  const pipeline = pipe(timerSystem, velocitySystem, playerCharacterMovementSystem);
   ticker.add(() => {
-    timerSystem(world);
-    playerCharacterMovementSystem(world);
-
+    pipeline(world);
     ghostyIdle.x = Position.x[player];
     ghostyIdle.y = Position.y[player];
   }, UPDATE_PRIORITY.INTERACTION);

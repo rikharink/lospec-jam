@@ -1,6 +1,6 @@
 import type { DisplayObject } from 'pixi.js';
 import { Graphics } from 'pixi.js';
-import type { UUIDV4, Random, Size, Position } from './types';
+import type { UUIDV4, Random, Size, Position } from '../types';
 
 export function swap<T>(arr: T[], i: number, j: number): void {
   [arr[j], arr[i]] = [arr[i], arr[j]];

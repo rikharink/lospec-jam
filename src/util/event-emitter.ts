@@ -1,6 +1,6 @@
 //ADAPTED FROM: https://basarat.gitbook.io/typescript/main-1/typed-event
-import { Disposable } from './interfaces/disposable';
-import { Listener } from './interfaces/listener';
+import { Disposable } from '../interfaces/disposable';
+import { Listener } from '../interfaces/listener';
 
 export class EventEmitter<T> {
   private listeners: Listener<T>[] = [];

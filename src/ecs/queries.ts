@@ -1,4 +1,4 @@
-import { defineQuery } from 'bitecs';
+import { defineQuery, Changed } from 'bitecs';
 import { Position, Velocity, IsPlayerCharacter } from './components';
 
 export const playerCharacterQuery = defineQuery([
@@ -6,3 +6,5 @@ export const playerCharacterQuery = defineQuery([
   Velocity,
   IsPlayerCharacter,
 ]);
+
+export const velocityChangedQuery = defineQuery([Changed(Velocity)]);

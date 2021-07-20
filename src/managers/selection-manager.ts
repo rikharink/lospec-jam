@@ -1,4 +1,4 @@
-import { EventEmitter } from '../event-emitter';
+import { EventEmitter } from '../util/event-emitter';
 import { InputManager } from './input-manager';
 
 export enum ItemSelectionType {

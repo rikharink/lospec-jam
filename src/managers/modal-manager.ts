@@ -51,7 +51,7 @@ export class Modal extends ContentView {
     return this._visible;
   }
 
-  public redraw() {}
+  public redraw() { }
 }
 
 export class ModalManager {
